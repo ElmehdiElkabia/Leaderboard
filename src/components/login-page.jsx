@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Trophy, Users, TrendingUp } from "lucide-react";
+import { oauthConfig } from "@/lib/auth";
 
 export function LoginPage() {
   const handleLogin = () => {
-    window.location.href =
-      "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d&redirect_uri=https%3A%2F%2F1337leaderboard.vercel.app&response_type=code";
+    const authUrl = `${oauthConfig.authorizeUrl}?client_id=${oauthConfig.clientId}&redirect_uri=${encodeURIComponent(oauthConfig.redirectUri)}&response_type=code`;
+    window.location.href = authUrl;
   };
 
   const features = [

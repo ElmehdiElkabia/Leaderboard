@@ -7,6 +7,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound";
+import { OAuthCallback } from "./components/oauth-callback.jsx";
+import AuthHandler from "./components/auth-handler.jsx";
+import { ProtectedRoute } from "./components/protected-route.jsx";
 
 const queryClient = new QueryClient();
 
@@ -16,11 +19,20 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Index />} />
-            <Route path="/" element={<Login />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/" element={<AuthHandler />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
