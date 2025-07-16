@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* 1337 Light Theme - Clean minimal design */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 200 100% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 142 100% 45%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 200 100% 45%;
+
+    --radius: 0.75rem;
+
+    /* 1337 Custom Design Tokens */
+    --primary-glow: 200 100% 70%;
+    --accent-glow: 142 100% 70%;
+    --gold: 45 100% 60%;
+    --silver: 0 0% 70%;
+    --bronze: 25 100% 50%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --gradient-gold: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(45 100% 70%) 100%);
+    --gradient-silver: linear-gradient(135deg, hsl(0 0% 70%) 0%, hsl(0 0% 85%) 100%);
+    --gradient-bronze: linear-gradient(135deg, hsl(var(--bronze)) 0%, hsl(25 100% 65%) 100%);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    --shadow-accent-glow: 0 0 40px hsl(var(--accent) / 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.2);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* 1337 Dark Theme - Coding environment inspired */
+    --background: 222 47% 4%;
+    --foreground: 200 20% 95%;
+
+    --card: 222 47% 6%;
+    --card-foreground: 200 20% 95%;
+
+    --popover: 222 47% 6%;
+    --popover-foreground: 200 20% 95%;
+
+    --primary: 200 100% 60%;
+    --primary-foreground: 222 47% 4%;
+
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 200 20% 95%;
+
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 142 100% 55%;
+    --accent-foreground: 222 47% 4%;
+
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 200 100% 60%;
+
+    /* Dark theme glows are more intense */
+    --primary-glow: 200 100% 70%;
+    --accent-glow: 142 100% 70%;
+    
+    /* Enhanced gradients for dark mode */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --shadow-glow: 0 0 60px hsl(var(--primary) / 0.4);
+    --shadow-accent-glow: 0 0 60px hsl(var(--accent) / 0.4);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
