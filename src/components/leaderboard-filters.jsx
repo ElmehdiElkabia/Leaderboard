@@ -1,12 +1,42 @@
-import { Search, Filter, ArrowUpDown } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Filter, ArrowUpDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { campuses, entryYears } from "@/lib/mock-data"
+
+const MOROCCAN_CAMPUSES = [
+  { id: 21, name: "Benguerir" },
+  { id: 75, name: "Rabat" },
+  { id: 55, name: "Tétouan" },
+  { id: 16, name: "Khouribga" },
+
+];
+
+const POOL_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
+
+const STUDENT_TYPES = [
+  { id: 21, name: "42cursus" },
+  { id: 9, name: "Piscine" },
+];
+
+const POOL_MONTHS = [
+  { id: 5, name: "May", value: "5" },
+  { id: 6, name: "June", value: "6" },
+  { id: 7, name: "July", value: "7" },
+  { id: 8, name: "August", value: "8" },
+  { id: 9, name: "September", value: "9" },
+];
+
+const BEGIN_AT = [
+  {id: 2019, name: "2019", value: "2019-01-01,2020-01-01"},
+  {id: 2020, name: "2020", value: "2020-01-01,2021-01-01"},
+  {id: 2021, name: "2021", value: "2021-01-01,2022-01-01"},
+  {id: 2022, name: "2022", value: "2022-01-01,2023-01-01"},
+  {id: 2023, name: "2023", value: "2023-01-01,2024-01-01"},
+  {id: 2024, name: "2024", value: "2024-01-01,2025-01-01"},
+  {id: 2025, name: "2025", value: "2025-01-01,2026-01-01"},
+]
 
 export function LeaderboardFilters({
-  searchTerm,
-  onSearchChange,
   levelFilter,
   onLevelFilterChange,
   campusFilter,
@@ -16,53 +46,71 @@ export function LeaderboardFilters({
   sortBy,
   onSortChange,
   totalStudents,
-  filteredStudents
+  filteredStudents,
+  selectedCampus,
+  onApplyFilters,
+  tempCampusFilter,
+  onTempCampusFilterChange,
+  studentType,
+  onStudentTypeChange,
+  poolMonth,
+  onPoolMonthChange
 }) {
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by login..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 border-border bg-background"
-              />
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 flex-1 lg:flex-none">
-              <Select value={campusFilter} onValueChange={onCampusFilterChange}>
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              {/* Student Type Selector */}
+              <Select value={studentType} onValueChange={onStudentTypeChange}>
+                <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  {STUDENT_TYPES.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Pool Month Selector - Show only for Piscine */}
+              {studentType === "9" && (
+                <Select value={poolMonth} onValueChange={onPoolMonthChange}>
+                  <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-popover">
+                    <SelectItem value="all">All Months</SelectItem>
+                    {POOL_MONTHS.map((month) => (
+                      <SelectItem key={month.id} value={month.value}>
+                        {month.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Campus Selector */}
+              <Select value={tempCampusFilter || selectedCampus?.id.toString()} onValueChange={onTempCampusFilterChange}>
                 <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Campus" />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-popover">
-                  <SelectItem value="all">All Campuses</SelectItem>
-                  {campuses.map((campus) => (
-                    <SelectItem key={campus.id} value={campus.name}>
+                  {MOROCCAN_CAMPUSES.map((campus) => (
+                    <SelectItem key={campus.id} value={campus.id.toString()}>
                       {campus.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Select value={levelFilter} onValueChange={onLevelFilterChange}>
-                <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Level" />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-popover">
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="21+">Level 21+</SelectItem>
-                  <SelectItem value="15+">Level 15+</SelectItem>
-                  <SelectItem value="10+">Level 10+</SelectItem>
-                  <SelectItem value="5+">Level 5+</SelectItem>
-                  <SelectItem value="0-5">Level 0-5</SelectItem>
-                </SelectContent>
-              </Select>
+      
 
               <Select value={yearFilter} onValueChange={onYearFilterChange}>
                 <SelectTrigger className="w-full sm:w-[120px] border-border bg-background">
@@ -71,9 +119,9 @@ export function LeaderboardFilters({
                 </SelectTrigger>
                 <SelectContent className="border-border bg-popover">
                   <SelectItem value="all">All Years</SelectItem>
-                  {entryYears.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
+                  {BEGIN_AT.map((item) => (
+                    <SelectItem key={item.id} value={item.value}>
+                      {item.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -91,6 +139,16 @@ export function LeaderboardFilters({
                   <SelectItem value="login">Login</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="flex items-center">
+              <Button 
+                onClick={onApplyFilters}
+                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Apply Filters
+              </Button>
             </div>
           </div>
 

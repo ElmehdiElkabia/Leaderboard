@@ -89,7 +89,9 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                       <span className="font-medium text-accent">{student.wallet}₳</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="text-sm text-muted-foreground">{student.entryYear}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {student.poolYear || 'N/A'}
+                      </span>
                     </TableCell>
                   </TableRow>
                 )
