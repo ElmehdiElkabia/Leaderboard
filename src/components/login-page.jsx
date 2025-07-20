@@ -3,12 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Trophy, Users, TrendingUp } from "lucide-react";
-import { oauthConfig } from "@/lib/auth";
+import { auth, oauthConfig } from "@/lib/auth";
+import { security } from "@/lib/security";
+import { useState } from "react";
 
 export function LoginPage() {
-  const handleLogin = () => {
-    const authUrl = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d&redirect_uri=https%3A%2F%2Fwww.13namima.me%2F&response_type=code"
-    window.location.href = authUrl;
+  const [loginError, setLoginError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      setIsLoading(true);
+      setLoginError(null);
+      
+      // Generate secure OAuth URL
+      const authUrl = auth.getOAuthUrl();
+      window.location.href = authUrl;
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError(error.message);
+      security.logSecurityEvent('login_error', { error: error.message });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const features = [
@@ -117,12 +135,28 @@ export function LoginPage() {
               </CardHeader>
 
               <CardContent className="space-y-6">
+                {loginError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-600">{loginError}</p>
+                  </div>
+                )}
+                
                 <Button
                   onClick={handleLogin}
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-200"
+                  disabled={isLoading}
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ExternalLink className="w-5 h-5 mr-2" />
-                  Sign in with 42 Intra
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="w-5 h-5 mr-2" />
+                      Sign in with 42 Intra
+                    </>
+                  )}
                 </Button>
 
                 <div className="text-center space-y-2">

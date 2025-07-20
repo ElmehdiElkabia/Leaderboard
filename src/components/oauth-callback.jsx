@@ -8,7 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { oauthConfig } from "@/lib/auth";
+import { auth, oauthConfig } from "@/lib/auth";
+import { security } from "@/lib/security";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -18,52 +19,66 @@ export function OAuthCallback() {
 
   useEffect(() => {
     const exchangeCodeForToken = async () => {
-      const code = searchParams.get("code");
-
-      if (!code) {
-        setError("No authorization code found");
-        setStatus("error");
-        return;
-      }
-
       try {
+        const code = searchParams.get("code");
+        const state = searchParams.get("state");
+        const error = searchParams.get("error");
+
+        // Check for OAuth errors
+        if (error) {
+          security.logSecurityEvent('oauth_error', { error });
+          throw new Error(`OAuth error: ${error}`);
+        }
+
+        // Validate required parameters
+        if (!code) {
+          security.logSecurityEvent('oauth_missing_code');
+          throw new Error("Missing authorization code");
+        }
+
+        // Validate state parameter (CSRF protection)
+        if (!auth.validateOAuthState(state)) {
+          throw new Error('Invalid state parameter. Possible CSRF attack.');
+        }
+
+        // Rate limiting check
+        const clientId = navigator.userAgent + window.location.hostname;
+        if (security.rateLimiter.isBlocked(clientId)) {
+          security.logSecurityEvent('oauth_callback_rate_limited');
+          throw new Error('Too many authentication attempts. Please try again later.');
+        }
+
+        security.rateLimiter.recordAttempt(clientId);
+
         // Check if client secret is available
         const clientSecret = import.meta.env.VITE_42_CLIENT_SECRET;
         if (!clientSecret) {
+          security.logSecurityEvent('missing_client_secret');
           throw new Error("Client secret not configured. Please check your .env file.");
         }
 
-        // Prepare the token exchange data
-        const requestData = {
-          grant_type: 'authorization_code',
-          client_id: oauthConfig.clientId,
-          client_secret: clientSecret,
-          code: code,
-          redirect_uri: oauthConfig.redirectUri,
-        };
-
-        // Convert to URL-encoded format (instead of FormData for better proxy compatibility)
-        const formBody = Object.keys(requestData)
-          .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
-          .join('&');
-
-        // Use backend API instead of direct requests to avoid CORS
+        // Exchange code for token through backend with security headers
         const response = await fetch('/api/oauth-token', {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // CSRF protection
           },
           body: JSON.stringify({
             grant_type: 'authorization_code',
             client_id: oauthConfig.clientId,
             client_secret: clientSecret,
-            code: code,
+            code: security.sanitizeInput(code),
             redirect_uri: oauthConfig.redirectUri,
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          security.logSecurityEvent('token_exchange_failed', { 
+            status: response.status,
+            error: errorData.error_description 
+          });
           throw new Error(
             errorData.error_description ||
               `Authentication failed: ${response.status}`
@@ -72,40 +87,55 @@ export function OAuthCallback() {
 
         const tokenData = await response.json();
 
-        // Store the access token
-        localStorage.setItem("42_access_token", tokenData.access_token);
-        if (tokenData.refresh_token) {
-          localStorage.setItem("42_refresh_token", tokenData.refresh_token);
+        // Validate token data
+        if (!tokenData.access_token) {
+          security.logSecurityEvent('invalid_token_response');
+          throw new Error('Invalid token response');
         }
-        localStorage.setItem(
-          "42_token_expires_at",
-          Date.now() + tokenData.expires_in * 1000
-        );
 
-        // Fetch user info using backend API
+        // Fetch user info using backend API with security headers
         const userResponse = await fetch('/api/user-me', {
           headers: {
             Authorization: `Bearer ${tokenData.access_token}`,
+            'X-Requested-With': 'XMLHttpRequest',
           },
         });
 
         if (!userResponse.ok) {
+          security.logSecurityEvent('user_data_fetch_failed', { 
+            status: userResponse.status 
+          });
           throw new Error(`Failed to fetch user info: ${userResponse.status}`);
         }
 
         const userData = await userResponse.json();
 
-        // Store user data
-        localStorage.setItem("42_user_data", JSON.stringify(userData));
+        // Validate user data
+        if (!userData.id || !userData.login) {
+          security.logSecurityEvent('invalid_user_data');
+          throw new Error('Invalid user data received');
+        }
+
+        // Store authentication data securely
+        const success = auth.setAuthData(tokenData, userData);
+        if (!success) {
+          throw new Error('Failed to store authentication data');
+        }
+
+        // Clear rate limiting on successful auth
+        security.rateLimiter.clearAttempts(clientId);
 
         setStatus("success");
 
         // Redirect to dashboard after a brief delay
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         }, 1000);
       } catch (error) {
         console.error("OAuth error:", error);
+        security.logSecurityEvent('oauth_callback_error', { 
+          error: error.message 
+        });
         setError(error.message);
         setStatus("error");
       }
