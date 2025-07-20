@@ -31,7 +31,7 @@ export function OAuthCallback() {
        const response = await fetch("/api/auth", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json",
+     "Content-Type": "application/x-www-form-urlencoded",
   },
   body: JSON.stringify({
     code: code,
