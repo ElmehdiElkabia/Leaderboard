@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { oauthConfig } from "@/lib/auth";
+import { corsProxy } from "@/lib/cors-proxy";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -17,64 +18,97 @@ export function OAuthCallback() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const handleTokenFromURL = async () => {
-      // For implicit flow, the token comes in the URL fragment (after #)
-      const urlParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = urlParams.get("access_token");
-      const expiresIn = urlParams.get("expires_in");
-      const tokenType = urlParams.get("token_type");
-      
-      // Also check URL search params for authorization code (fallback)
+    const exchangeCodeForToken = async () => {
       const code = searchParams.get("code");
 
-      if (accessToken) {
-        // Handle implicit flow (token directly in URL)
-        try {
-          // Store the access token
-          localStorage.setItem("42_access_token", accessToken);
-          localStorage.setItem(
-            "42_token_expires_at",
-            Date.now() + parseInt(expiresIn) * 1000
-          );
-
-          // Fetch user info with the access token
-          const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          });
-
-          if (!userResponse.ok) {
-            throw new Error("Failed to fetch user info");
-          }
-
-          const userData = await userResponse.json();
-
-          // Store user data
-          localStorage.setItem("42_user_data", JSON.stringify(userData));
-
-          setStatus("success");
-
-          // Redirect to dashboard after a brief delay
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 1000);
-        } catch (error) {
-          console.error("OAuth error:", error);
-          setError(error.message);
-          setStatus("error");
-        }
-      } else if (code) {
-        // Handle authorization code flow (requires backend)
-        setError("Authorization code flow requires a backend server. Please use the implicit flow or set up a backend.");
+      if (!code) {
+        setError("No authorization code found");
         setStatus("error");
-      } else {
-        setError("No access token or authorization code found");
+        return;
+      }
+
+      try {
+        // Check if client secret is available
+        const clientSecret = import.meta.env.VITE_42_CLIENT_SECRET;
+        if (!clientSecret) {
+          throw new Error("Client secret not configured. Please check your .env file.");
+        }
+
+        // Use FormData instead of JSON to avoid CORS preflight
+        const formData = new FormData();
+        formData.append('grant_type', 'authorization_code');
+        formData.append('client_id', oauthConfig.clientId);
+        formData.append('client_secret', clientSecret);
+        formData.append('code', code);
+        formData.append('redirect_uri', oauthConfig.redirectUri);
+
+        // Try direct request first, then fallback to CORS proxy
+        let response;
+        try {
+          // Exchange the authorization code for an access token
+          response = await fetch(oauthConfig.tokenUrl, {
+            method: "POST",
+            body: formData,
+          });
+        } catch (corsError) {
+          console.log("Direct request failed, trying CORS proxy...");
+          // Fallback to CORS proxy
+          response = await corsProxy.fetch(oauthConfig.tokenUrl, {
+            method: "POST",
+            body: formData,
+          });
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error_description ||
+              `HTTP error! status: ${response.status}`
+          );
+        }
+
+        const tokenData = await response.json();
+
+        // Store the access token
+        localStorage.setItem("42_access_token", tokenData.access_token);
+        if (tokenData.refresh_token) {
+          localStorage.setItem("42_refresh_token", tokenData.refresh_token);
+        }
+        localStorage.setItem(
+          "42_token_expires_at",
+          Date.now() + tokenData.expires_in * 1000
+        );
+
+        // Fetch user info with the access token
+        const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        });
+
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+
+        const userData = await userResponse.json();
+
+        // Store user data
+        localStorage.setItem("42_user_data", JSON.stringify(userData));
+
+        setStatus("success");
+
+        // Redirect to dashboard after a brief delay
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } catch (error) {
+        console.error("OAuth error:", error);
+        setError(error.message);
         setStatus("error");
       }
     };
 
-    handleTokenFromURL();
+    exchangeCodeForToken();
   }, [searchParams, navigate]);
 
   if (status === "processing") {
