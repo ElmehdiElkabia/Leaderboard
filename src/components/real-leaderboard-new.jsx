@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,16 +69,14 @@ export function RealLeaderboard() {
     setError(null);
     
     try {
-      // Fetch cursus users for the selected campus with pagination
-      const response = await auth.apiRequest(
-        `https://api.intra.42.fr/v2/cursus_users?filter[campus_id]=${campusId}&sort=-level&per_page=${USERS_PER_PAGE}&page=${page}&filter[cursus_id]=21`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const cursusUsers = await response.json();
+      // Use the new API utility to avoid CORS issues
+      const cursusUsers = await api.getCursusUsers({
+        'filter[campus_id]': campusId,
+        sort: '-level',
+        'page[size]': USERS_PER_PAGE,
+        'page[number]': page,
+        'filter[cursus_id]': '21'
+      });
       
       // Check if there are more pages
       setHasMore(cursusUsers.length === USERS_PER_PAGE);

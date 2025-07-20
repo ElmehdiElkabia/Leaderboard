@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,28 +99,18 @@ export function RealLeaderboard() {
         dateRangeToUse = selectedDateRange;
       }
       
-      // Create URL parameters similar to the Next.js API pattern
-      const params = new URLSearchParams({
+      // Use the new API utility instead of direct calls
+      const apiParams = {
         cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
         "range[begin_at]": dateRangeToUse, // Use conditional date range
         "page[size]": USERS_PER_PAGE.toString(),
         "page[number]": page.toString(),
         sort: "-level",
         "filter[campus_id]": campusId.toString(),
-      });
+      };
 
-      // console.log("API URL: ", params.toString());
-      
-      const response = await auth.apiRequest(
-        `https://api.intra.42.fr/v2/cursus_users?${params.toString()}`
-      );
-      
-      if (!response.ok) {
-        console.error("Failed to fetch progress data");
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const cursusUsers = await response.json();
+      // Use the new API utility to avoid CORS issues
+      const cursusUsers = await api.getCursusUsers(apiParams);
       
       // Transform response similar to the Next.js API pattern
       const filteredUsers = cursusUsers.map((item) => ({

@@ -30,12 +30,21 @@ export const auth = {
     localStorage.removeItem('42_user_data');
   },
 
-  // Make authenticated API request
-  apiRequest: async (url, options = {}) => {
+  // Make authenticated API request through backend to avoid CORS
+  apiRequest: async (originalUrl, options = {}) => {
     const token = auth.getAccessToken();
     if (!token) throw new Error('Not authenticated');
 
-    const response = await fetch(url, {
+    // Extract the path from the original 42 API URL
+    let apiPath = originalUrl;
+    if (originalUrl.includes('api.intra.42.fr/v2/')) {
+      apiPath = originalUrl.split('api.intra.42.fr/v2/')[1];
+    }
+
+    // Use the backend proxy instead of direct calls
+    const proxyUrl = `/api/intra-proxy?path=${encodeURIComponent(apiPath)}`;
+
+    const response = await fetch(proxyUrl, {
       ...options,
       headers: {
         ...options.headers,
