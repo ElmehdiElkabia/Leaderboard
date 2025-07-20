@@ -27,6 +27,7 @@ const App = () => (
         >
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
