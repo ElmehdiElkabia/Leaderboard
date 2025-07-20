@@ -7,7 +7,7 @@ import { oauthConfig } from "@/lib/auth";
 
 export function LoginPage() {
   const handleLogin = () => {
-    const authUrl = `${oauthConfig.authorizeUrl}?client_id=${oauthConfig.clientId}&redirect_uri=${encodeURIComponent(oauthConfig.redirectUri)}&response_type=code&scope=public`;
+    const authUrl = "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d&redirect_uri=https%3A%2F%2Fwww.13namima.me%2F&response_type=code"
     window.location.href = authUrl;
   };
 
