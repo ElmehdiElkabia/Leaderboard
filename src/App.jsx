@@ -25,7 +25,7 @@ const App = () => (
             v7_relativeSplatPath: true,
           }}
         >
-          <Routes pathname="https://www.13namima.me/">
+          <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
