@@ -52,7 +52,28 @@ export const auth = {
     return response;
   },
 };
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
 
+  const { code, redirect_uri } = req.body;
+
+  const params = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: process.env.VITE_42_CLIENT_ID,
+    client_secret: process.env.VITE_42_CLIENT_SECRET,
+    code,
+    redirect_uri,
+  });
+
+  const tokenRes = await fetch("https://api.intra.42.fr/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  const data = await tokenRes.json();
+  res.status(tokenRes.status).json(data);
+}
 // OAuth configuration
 export const oauthConfig = {
   clientId: import.meta.env.VITE_42_CLIENT_ID,
