@@ -77,7 +77,7 @@ export default async function handler(req, res) {
 // OAuth configuration
 export const oauthConfig = {
   clientId: import.meta.env.VITE_42_CLIENT_ID,
-  redirectUri: 'https://13namima.me/',
+  redirectUri: 'https://www.13namima.me/',
   authorizeUrl: 'https://api.intra.42.fr/oauth/authorize',
   tokenUrl: 'https://api.intra.42.fr/oauth/token',
   apiBaseUrl: 'https://api.intra.42.fr/v2',
