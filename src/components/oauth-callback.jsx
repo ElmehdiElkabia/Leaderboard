@@ -10,7 +10,6 @@ import {
 import { Loader2 } from "lucide-react";
 import { oauthConfig } from "@/lib/auth";
 import { corsProxy } from "@/lib/cors-proxy";
-import { oauthProxy } from "@/lib/oauth-proxy";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -49,65 +48,55 @@ export function OAuthCallback() {
           .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
           .join('&');
 
-        // Try multiple approaches to handle CORS issues
+        // Try direct request first, then fallback to CORS proxy
         let tokenData;
-        let attempts = 0;
-        const maxAttempts = 3;
         
-        while (attempts < maxAttempts && !tokenData) {
-          attempts++;
+        try {
+          // Attempt 1: Direct request
+          console.log("Attempting direct request to 42 API...");
+          const response = await fetch(oauthConfig.tokenUrl, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formBody,
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.error_description ||
+                `HTTP error! status: ${response.status}`
+            );
+          }
+          
+          tokenData = await response.json();
+          
+        } catch (directError) {
+          console.log("Direct request failed, trying CORS proxy...");
           
           try {
-            if (attempts === 1) {
-              // Attempt 1: Direct request
-              console.log("Attempt 1: Direct request to 42 API...");
-              const response = await fetch(oauthConfig.tokenUrl, {
-                method: "POST",
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formBody,
-              });
-              
-              if (response.ok) {
-                tokenData = await response.json();
-              } else {
-                throw new Error(`HTTP ${response.status}`);
-              }
-              
-            } else if (attempts === 2) {
-              // Attempt 2: CORS proxy
-              console.log("Attempt 2: Using CORS proxy...");
-              const response = await corsProxy.fetch(oauthConfig.tokenUrl, {
-                method: "POST",
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formBody,
-              });
-              
-              if (response.ok) {
-                tokenData = await response.json();
-              } else {
-                throw new Error(`Proxy HTTP ${response.status}`);
-              }
-              
-            } else if (attempts === 3) {
-              // Attempt 3: PHP proxy
-              console.log("Attempt 3: Using PHP proxy...");
-              tokenData = await oauthProxy.exchangeToken(
-                code,
-                oauthConfig.clientId,
-                clientSecret,
-                oauthConfig.redirectUri
+            // Attempt 2: CORS proxy
+            const response = await corsProxy.fetch(oauthConfig.tokenUrl, {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: formBody,
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(
+                errorData.error_description ||
+                  `CORS proxy error! status: ${response.status}`
               );
             }
             
-          } catch (error) {
-            console.log(`Attempt ${attempts} failed:`, error.message);
-            if (attempts === maxAttempts) {
-              throw new Error(`All token exchange attempts failed. Last error: ${error.message}`);
-            }
+            tokenData = await response.json();
+            
+          } catch (proxyError) {
+            throw new Error(`Both direct request and CORS proxy failed. Direct: ${directError.message}, Proxy: ${proxyError.message}`);
           }
         }
 
@@ -121,56 +110,43 @@ export function OAuthCallback() {
           Date.now() + tokenData.expires_in * 1000
         );
 
-        // Fetch user info with multiple fallback methods
+        // Fetch user info with fallback to CORS proxy
         let userData;
-        let userAttempts = 0;
-        const maxUserAttempts = 3;
         
-        while (userAttempts < maxUserAttempts && !userData) {
-          userAttempts++;
+        try {
+          // Attempt 1: Direct request
+          console.log("Fetching user data: Direct request...");
+          const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
+            headers: {
+              Authorization: `Bearer ${tokenData.access_token}`,
+            },
+          });
+          
+          if (!userResponse.ok) {
+            throw new Error(`Failed to fetch user info: ${userResponse.status}`);
+          }
+          
+          userData = await userResponse.json();
+          
+        } catch (userDirectError) {
+          console.log("User data direct request failed, trying CORS proxy...");
           
           try {
-            if (userAttempts === 1) {
-              // Attempt 1: Direct request
-              console.log("Fetching user data: Direct request...");
-              const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
-                headers: {
-                  Authorization: `Bearer ${tokenData.access_token}`,
-                },
-              });
-              
-              if (userResponse.ok) {
-                userData = await userResponse.json();
-              } else {
-                throw new Error(`HTTP ${userResponse.status}`);
-              }
-              
-            } else if (userAttempts === 2) {
-              // Attempt 2: CORS proxy
-              console.log("Fetching user data: CORS proxy...");
-              const userResponse = await corsProxy.fetch(`${oauthConfig.apiBaseUrl}/me`, {
-                headers: {
-                  Authorization: `Bearer ${tokenData.access_token}`,
-                },
-              });
-              
-              if (userResponse.ok) {
-                userData = await userResponse.json();
-              } else {
-                throw new Error(`Proxy HTTP ${userResponse.status}`);
-              }
-              
-            } else if (userAttempts === 3) {
-              // Attempt 3: PHP proxy
-              console.log("Fetching user data: PHP proxy...");
-              userData = await oauthProxy.getUser(tokenData.access_token);
+            // Attempt 2: CORS proxy
+            const userResponse = await corsProxy.fetch(`${oauthConfig.apiBaseUrl}/me`, {
+              headers: {
+                Authorization: `Bearer ${tokenData.access_token}`,
+              },
+            });
+            
+            if (!userResponse.ok) {
+              throw new Error(`CORS proxy failed to fetch user info: ${userResponse.status}`);
             }
             
-          } catch (userError) {
-            console.log(`User data attempt ${userAttempts} failed:`, userError.message);
-            if (userAttempts === maxUserAttempts) {
-              throw new Error(`All user data attempts failed. Last error: ${userError.message}`);
-            }
+            userData = await userResponse.json();
+            
+          } catch (userProxyError) {
+            throw new Error(`Both direct and proxy user data requests failed. Direct: ${userDirectError.message}, Proxy: ${userProxyError.message}`);
           }
         }
 
