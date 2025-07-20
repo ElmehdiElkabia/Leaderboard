@@ -36,7 +36,7 @@ export function OAuthCallback() {
           body: JSON.stringify({
             grant_type: "authorization_code",
             client_id: oauthConfig.clientId,
-            client_secret: import.meta.env.VITE_42_CLIENT_SECRET,
+            client_secret: "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", //import.meta.env.VITE_42_CLIENT_SECRET,
             code: code,
             redirect_uri: oauthConfig.redirectUri,
           }),
