@@ -1,17 +1,6 @@
-// Obfuscated OAuth endpoint - /api/auth_exchange.js
-
+// Simple OAuth token exchange endpoint - /api/oauth-token.js
 export default async function handler(req, res) {
-  // Simple rate limiting without external dependencies
-  const rateLimit = (req) => {
-    // Basic rate limiting logic here
-    return true; // Allow for now
-  };
-  
-  if (!rateLimit(req)) {
-    return res.status(429).json({ error: 'Rate limit exceeded' });
-  }
-  
-  // Set secure CORS headers for specific origins
+  // Set CORS headers
   const origin = req.headers.origin;
   const allowedOrigins = [
     'https://www.13namima.me',
@@ -25,7 +14,7 @@ export default async function handler(req, res) {
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-Request-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Add security headers
@@ -45,31 +34,7 @@ export default async function handler(req, res) {
   }
   
   try {
-    // Sanitize input data (basic validation)
-    const sanitizeInput = (input) => {
-      if (typeof input !== 'object') return {};
-      const sanitized = {};
-      for (const [key, value] of Object.entries(input)) {
-        if (typeof value === 'string') {
-          sanitized[key] = value.replace(/[<>]/g, '').trim().slice(0, 1000);
-        }
-      }
-      return sanitized;
-    };
-    
-    // Handle secure payload if present
-    let requestData;
-    if (req.headers['x-request-type'] === 'secure' && req.body.meta) {
-      // Extract secure payload
-      const { data } = extractSecurePayload(req.body);
-      requestData = data;
-    } else {
-      // Fallback for direct requests
-      requestData = req.body;
-    }
-    
-    const sanitizedBody = sanitizeInput(requestData);
-    const { code, state } = sanitizedBody;
+    const { code, state } = req.body;
     
     // Validate required fields
     if (!code) {
@@ -79,7 +44,7 @@ export default async function handler(req, res) {
       });
     }
     
-    // Validate code format (basic validation)
+    // Validate code format
     if (code.length < 10 || code.length > 500) {
       return res.status(400).json({ 
         error: 'invalid_grant',
@@ -87,19 +52,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get OAuth configuration from environment (secure server-side ONLY)
+    // Get OAuth configuration from environment (secure server-side)
     const clientId = process.env.VITE_42_CLIENT_ID;
     const clientSecret = process.env.VITE_42_CLIENT_SECRET;
     const redirectUri = process.env.VITE_42_REDIRECT_URI;
-
-    // Log what we're working with (without sensitive data)
-    console.log('OAuth configuration check:', {
-      hasClientId: !!clientId,
-      hasClientSecret: !!clientSecret,
-      hasRedirectUri: !!redirectUri,
-      receivedCode: !!code,
-      timestamp: new Date().toISOString()
-    });
 
     // Validate server configuration
     if (!clientId || !clientSecret || !redirectUri) {
@@ -114,14 +70,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // Double-check that we're not using any client data from the request
-    // All OAuth credentials must come from server environment variables
     const formData = new URLSearchParams({
       grant_type: 'authorization_code',
-      client_id: clientId,        // From server environment
-      client_secret: clientSecret,  // From server environment
-      code: code,                    // From client (safe to expose)
-      redirect_uri: redirectUri      // From server environment
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: code,
+      redirect_uri: redirectUri
     });
     
     const response = await fetch('https://api.intra.42.fr/oauth/token', {
@@ -136,7 +90,6 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (!response.ok) {
-      // Log the error for security monitoring
       console.warn('OAuth token exchange failed:', {
         status: response.status,
         error: data.error,
@@ -154,11 +107,8 @@ export default async function handler(req, res) {
       });
     }
     
-    // Log successful token exchange (without sensitive data)
     console.log('Successful OAuth token exchange:', {
       timestamp: new Date().toISOString(),
-      clientId: clientId,
-      tokenType: data.token_type,
       hasAccessToken: !!data.access_token
     });
     
@@ -169,34 +119,5 @@ export default async function handler(req, res) {
       error: 'server_error',
       error_description: 'Internal server error during token exchange'
     });
-  }
-}
-
-// Helper function to extract secure payload
-function extractSecurePayload(payload) {
-  try {
-    if (!payload.meta || !payload.data) {
-      throw new Error('Invalid payload structure');
-    }
-    
-    const { t: timestamp, n: nonce, v: version } = payload.meta;
-    
-    // Check timestamp (reject requests older than 5 minutes)
-    if (Date.now() - timestamp > 300000) {
-      throw new Error('Request expired');
-    }
-    
-    // Validate version
-    if (version !== '2.0') {
-      throw new Error('Unsupported request version');
-    }
-    
-    return {
-      data: payload.data,
-      timestamp,
-      nonce
-    };
-  } catch (error) {
-    throw new Error(`Payload validation failed: ${error.message}`);
   }
 }

@@ -8,7 +8,7 @@ import { SecurityMonitor } from "@/components/security-monitor";
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound";
-import { OAuthCallback } from "./components/oauth-callback.jsx";
+import { OAuthCallbackSimple } from "./components/oauth-callback-simple.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
 import { ProtectedRoute } from "./components/protected-route.jsx";
 import { useEffect, useState } from "react";
@@ -73,7 +73,7 @@ const App = () => {
           >
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/oauth/callback" element={<OAuthCallback />} />
+              <Route path="/oauth/callback" element={<OAuthCallbackSimple />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />
