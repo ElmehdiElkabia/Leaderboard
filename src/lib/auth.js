@@ -227,9 +227,9 @@ export const auth = {
 
 // OAuth configuration with enhanced security
 export const oauthConfig = {
-  clientId: import.meta.env.VITE_42_CLIENT_ID || 'u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d',
-  redirectUri: import.meta.env.VITE_42_REDIRECT_URI || 'http://localhost:8080/',
-  authorizeUrl: import.meta.env.VITE_42_AUTHORIZE_URL || 'https://api.intra.42.fr/oauth/authorize',
-  tokenUrl: import.meta.env.VITE_42_TOKEN_URL || 'https://api.intra.42.fr/oauth/token',
-  apiBaseUrl: import.meta.env.VITE_42_API_BASE_URL || 'https://api.intra.42.fr/v2',
+  clientId: import.meta.env.VITE_42_CLIENT_ID,
+  redirectUri: import.meta.env.VITE_42_REDIRECT_URI,
+  authorizeUrl: import.meta.env.VITE_42_AUTHORIZE_URL,
+  tokenUrl: import.meta.env.VITE_42_TOKEN_URL,
+  apiBaseUrl: import.meta.env.VITE_42_API_BASE_URL,
 };

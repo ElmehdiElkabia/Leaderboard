@@ -50,21 +50,13 @@ export default async function handler(req, res) {
   try {
     // Sanitize input data
     const sanitizedBody = apiSecurity.sanitizeInput(req.body);
-    const { grant_type, client_id, client_secret, code, redirect_uri } = sanitizedBody;
+    const { code, state } = sanitizedBody;
     
     // Validate required fields
-    if (!grant_type || !client_id || !client_secret || !code || !redirect_uri) {
+    if (!code) {
       return res.status(400).json({ 
-        error: 'Missing required fields',
-        error_description: 'All OAuth parameters are required'
-      });
-    }
-    
-    // Validate grant type
-    if (grant_type !== 'authorization_code') {
-      return res.status(400).json({ 
-        error: 'invalid_grant',
-        error_description: 'Only authorization_code grant type is supported'
+        error: 'invalid_request',
+        error_description: 'Missing authorization code'
       });
     }
     
@@ -75,13 +67,31 @@ export default async function handler(req, res) {
         error_description: 'Invalid authorization code format'
       });
     }
+
+    // Get OAuth configuration from environment (secure server-side)
+    const clientId = process.env.VITE_42_CLIENT_ID;
+    const clientSecret = process.env.VITE_42_CLIENT_SECRET;
+    const redirectUri = process.env.VITE_42_REDIRECT_URI;
+
+    // Validate server configuration
+    if (!clientId || !clientSecret || !redirectUri) {
+      console.error('OAuth configuration missing:', {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+        hasRedirectUri: !!redirectUri
+      });
+      return res.status(500).json({ 
+        error: 'server_error',
+        error_description: 'OAuth configuration not properly set on server'
+      });
+    }
     
     const formData = new URLSearchParams({
-      grant_type,
-      client_id,
-      client_secret,
-      code,
-      redirect_uri
+      grant_type: 'authorization_code',
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: code,
+      redirect_uri: redirectUri
     });
     
     const response = await fetch('https://api.intra.42.fr/oauth/token', {
@@ -117,8 +127,9 @@ export default async function handler(req, res) {
     // Log successful token exchange (without sensitive data)
     console.log('Successful OAuth token exchange:', {
       timestamp: new Date().toISOString(),
-      clientId: client_id,
-      tokenType: data.token_type
+      clientId: clientId,
+      tokenType: data.token_type,
+      hasAccessToken: !!data.access_token
     });
     
     return res.json(data);

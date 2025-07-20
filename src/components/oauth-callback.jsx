@@ -50,14 +50,7 @@ export function OAuthCallback() {
 
         security.rateLimiter.recordAttempt(clientId);
 
-        // Check if client secret is available
-        const clientSecret = import.meta.env.VITE_42_CLIENT_SECRET;
-        if (!clientSecret) {
-          security.logSecurityEvent('missing_client_secret');
-          throw new Error("Client secret not configured. Please check your .env file.");
-        }
-
-        // Exchange code for token through backend with security headers
+        // Exchange code for token through secure backend (no client secret in frontend)
         const response = await fetch('/api/oauth-token', {
           method: "POST",
           headers: {
@@ -65,11 +58,8 @@ export function OAuthCallback() {
             'X-Requested-With': 'XMLHttpRequest', // CSRF protection
           },
           body: JSON.stringify({
-            grant_type: 'authorization_code',
-            client_id: oauthConfig.clientId,
-            client_secret: clientSecret,
             code: security.sanitizeInput(code),
-            redirect_uri: oauthConfig.redirectUri,
+            state: security.sanitizeInput(state)
           }),
         });
 
