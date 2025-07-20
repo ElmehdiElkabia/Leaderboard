@@ -27,6 +27,12 @@ export function OAuthCallback() {
       }
 
       try {
+        // Check if client secret is available
+        const clientSecret = import.meta.env.VITE_42_CLIENT_SECRET;
+        if (!clientSecret) {
+          throw new Error("Client secret not configured. Please check your .env file.");
+        }
+
         // Exchange the authorization code for an access token
         const response = await fetch(oauthConfig.tokenUrl, {
           method: "POST",
@@ -36,7 +42,7 @@ export function OAuthCallback() {
           body: JSON.stringify({
             grant_type: "authorization_code",
             client_id: oauthConfig.clientId,
-            client_secret: import.meta.env.VITE_42_CLIENT_SECRET,
+            client_secret: clientSecret,
             code: code,
             redirect_uri: oauthConfig.redirectUri,
           }),
