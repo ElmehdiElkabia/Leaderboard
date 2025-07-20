@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { oauthConfig } from "@/lib/auth";
-import { corsProxy } from "@/lib/cors-proxy";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -48,54 +47,30 @@ export function OAuthCallback() {
           .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
           .join('&');
 
-        // Try direct request first, then fallback to CORS proxy
-        let tokenData;
-        
-        try {
-          // Attempt direct request first
-          const response = await fetch(oauthConfig.tokenUrl, {
-            method: "POST",
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formBody,
-          });
+        // Use backend API instead of direct requests to avoid CORS
+        const response = await fetch('/api/oauth-token', {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            grant_type: 'authorization_code',
+            client_id: oauthConfig.clientId,
+            client_secret: clientSecret,
+            code: code,
+            redirect_uri: oauthConfig.redirectUri,
+          }),
+        });
 
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(
-              errorData.error_description ||
-                `HTTP error! status: ${response.status}`
-            );
-          }
-
-          tokenData = await response.json();
-          
-        } catch (directError) {
-          // Fallback to CORS proxy if direct request fails
-          try {
-            const response = await corsProxy.fetch(oauthConfig.tokenUrl, {
-              method: "POST",
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: formBody,
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(
-                errorData.error_description ||
-                  `CORS proxy error! status: ${response.status}`
-              );
-            }
-
-            tokenData = await response.json();
-            
-          } catch (proxyError) {
-            throw new Error(`Authentication failed. Direct: ${directError.message}, Proxy: ${proxyError.message}`);
-          }
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error_description ||
+              `Authentication failed: ${response.status}`
+          );
         }
+
+        const tokenData = await response.json();
 
         // Store the access token
         localStorage.setItem("42_access_token", tokenData.access_token);
@@ -107,42 +82,18 @@ export function OAuthCallback() {
           Date.now() + tokenData.expires_in * 1000
         );
 
-        // Fetch user info with CORS proxy fallback
-        let userData;
-        
-        try {
-          // Attempt direct request first
-          const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
-            headers: {
-              Authorization: `Bearer ${tokenData.access_token}`,
-            },
-          });
+        // Fetch user info using backend API
+        const userResponse = await fetch('/api/user-me', {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
+        });
 
-          if (!userResponse.ok) {
-            throw new Error(`Failed to fetch user info: ${userResponse.status}`);
-          }
-
-          userData = await userResponse.json();
-          
-        } catch (userDirectError) {
-          // Fallback to CORS proxy if direct request fails
-          try {
-            const userResponse = await corsProxy.fetch(`${oauthConfig.apiBaseUrl}/me`, {
-              headers: {
-                Authorization: `Bearer ${tokenData.access_token}`,
-              },
-            });
-
-            if (!userResponse.ok) {
-              throw new Error(`CORS proxy failed to fetch user info: ${userResponse.status}`);
-            }
-
-            userData = await userResponse.json();
-            
-          } catch (userProxyError) {
-            throw new Error(`Failed to get user data. Direct: ${userDirectError.message}, Proxy: ${userProxyError.message}`);
-          }
+        if (!userResponse.ok) {
+          throw new Error(`Failed to fetch user info: ${userResponse.status}`);
         }
+
+        const userData = await userResponse.json();
 
         // Store user data
         localStorage.setItem("42_user_data", JSON.stringify(userData));
