@@ -100,7 +100,7 @@ export const auth = {
     }
   },
 
-  // Make authenticated API request through backend to avoid CORS with security
+  // Make authenticated API request through obfuscated backend to avoid CORS and hide endpoints
   apiRequest: async (originalUrl, options = {}) => {
     const token = auth.getAccessToken();
     if (!token) {
@@ -127,11 +127,19 @@ export const auth = {
     // Sanitize API path
     apiPath = security.sanitizeInput(apiPath);
 
-    // Use the backend proxy instead of direct calls
-    const proxyUrl = `/api/intra-proxy?path=${encodeURIComponent(apiPath)}`;
+    // Determine which obfuscated endpoint to use
+    let obfuscatedEndpoint;
+    if (apiPath.includes('cursus_users')) {
+      obfuscatedEndpoint = '/api/student_data';
+    } else if (apiPath === 'me') {
+      obfuscatedEndpoint = '/api/profile_info';
+    } else {
+      // Fallback to general API bridge
+      obfuscatedEndpoint = `/api/api_bridge?path=${encodeURIComponent(apiPath)}`;
+    }
 
     try {
-      const response = await fetch(proxyUrl, {
+      const response = await fetch(obfuscatedEndpoint, {
         ...options,
         headers: {
           ...options.headers,

@@ -10,6 +10,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { auth, oauthConfig } from "@/lib/auth";
 import { security } from "@/lib/security";
+import { apiSecurity } from "@/lib/api-obfuscation";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -50,13 +51,9 @@ export function OAuthCallback() {
 
         security.rateLimiter.recordAttempt(clientId);
 
-        // Exchange code for token through secure backend (no client secret in frontend)
-        const response = await fetch('/api/oauth-token', {
+        // Exchange code for token through secure obfuscated backend
+        const response = await apiSecurity.secureRequest('oauth-token', {
           method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest', // CSRF protection
-          },
           body: JSON.stringify({
             code: security.sanitizeInput(code),
             state: security.sanitizeInput(state)
@@ -83,8 +80,8 @@ export function OAuthCallback() {
           throw new Error('Invalid token response');
         }
 
-        // Fetch user info using backend API with security headers
-        const userResponse = await fetch('/api/user-me', {
+        // Fetch user info using obfuscated backend API with security headers
+        const userResponse = await fetch('/api/profile_info', {
           headers: {
             Authorization: `Bearer ${tokenData.access_token}`,
             'X-Requested-With': 'XMLHttpRequest',

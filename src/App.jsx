@@ -11,7 +11,6 @@ import NotFound from "./pages/NotFound";
 import { OAuthCallback } from "./components/oauth-callback.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
 import { ProtectedRoute } from "./components/protected-route.jsx";
-import { envConfig } from "@/lib/env-config";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -20,9 +19,20 @@ const App = () => {
   const [configError, setConfigError] = useState(null);
 
   useEffect(() => {
-    // Validate environment configuration on app start
+    // Basic environment validation (frontend-safe)
     try {
-      envConfig.init();
+      const requiredVars = ['VITE_42_CLIENT_ID', 'VITE_42_REDIRECT_URI'];
+      const missing = requiredVars.filter(varName => !import.meta.env[varName]);
+      
+      if (missing.length > 0) {
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+      }
+
+      // Security check: Warn if client secret is in frontend
+      if (import.meta.env.VITE_42_CLIENT_SECRET) {
+        console.warn('🚨 SECURITY WARNING: Client secret detected in frontend environment! This should be server-side only.');
+      }
+      
     } catch (error) {
       setConfigError(error.message);
     }

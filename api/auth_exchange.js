@@ -1,6 +1,4 @@
-// Vercel serverless function for OAuth token exchange with security
-// File: /api/oauth-token.js
-
+// Obfuscated OAuth endpoint - /api/auth_exchange.js
 import { apiSecurity } from './security-middleware.js';
 
 export default async function handler(req, res) {
@@ -29,7 +27,7 @@ export default async function handler(req, res) {
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-Request-Type');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Add security headers
@@ -37,6 +35,7 @@ export default async function handler(req, res) {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   
   // Handle preflight request
   if (req.method === 'OPTIONS') {
@@ -48,8 +47,19 @@ export default async function handler(req, res) {
   }
   
   try {
+    // Handle secure payload if present
+    let requestData;
+    if (req.headers['x-request-type'] === 'secure' && req.body.meta) {
+      // Extract secure payload
+      const { data } = extractSecurePayload(req.body);
+      requestData = data;
+    } else {
+      // Fallback for direct requests
+      requestData = req.body;
+    }
+    
     // Sanitize input data
-    const sanitizedBody = apiSecurity.sanitizeInput(req.body);
+    const sanitizedBody = apiSecurity.sanitizeInput(requestData);
     const { code, state } = sanitizedBody;
     
     // Validate required fields
@@ -150,5 +160,34 @@ export default async function handler(req, res) {
       error: 'server_error',
       error_description: 'Internal server error during token exchange'
     });
+  }
+}
+
+// Helper function to extract secure payload
+function extractSecurePayload(payload) {
+  try {
+    if (!payload.meta || !payload.data) {
+      throw new Error('Invalid payload structure');
+    }
+    
+    const { t: timestamp, n: nonce, v: version } = payload.meta;
+    
+    // Check timestamp (reject requests older than 5 minutes)
+    if (Date.now() - timestamp > 300000) {
+      throw new Error('Request expired');
+    }
+    
+    // Validate version
+    if (version !== '2.0') {
+      throw new Error('Unsupported request version');
+    }
+    
+    return {
+      data: payload.data,
+      timestamp,
+      nonce
+    };
+  } catch (error) {
+    throw new Error(`Payload validation failed: ${error.message}`);
   }
 }

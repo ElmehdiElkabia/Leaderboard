@@ -1,9 +1,8 @@
-// Environment configuration validation and security
+// Environment configuration validation and security (Frontend-safe)
 export const envConfig = {
-  // Required environment variables
+  // Required environment variables (FRONTEND ONLY)
   required: [
     'VITE_42_CLIENT_ID',
-    'VITE_42_CLIENT_SECRET',
     'VITE_42_REDIRECT_URI'
   ],
   
@@ -17,7 +16,7 @@ export const envConfig = {
     'VITE_42_API_BASE_URL': 'https://api.intra.42.fr/v2'
   },
   
-  // Validate all environment variables
+  // Validate all environment variables (FRONTEND SAFE)
   validate: () => {
     const errors = [];
     const warnings = [];
@@ -35,12 +34,6 @@ export const envConfig = {
       switch (varName) {
         case 'VITE_42_CLIENT_ID':
           if (!envConfig.validateClientId(value)) {
-            errors.push(`Invalid ${varName} format`);
-          }
-          break;
-          
-        case 'VITE_42_CLIENT_SECRET':
-          if (!envConfig.validateClientSecret(value)) {
             errors.push(`Invalid ${varName} format`);
           }
           break;
@@ -91,14 +84,6 @@ export const envConfig = {
     return pattern.test(clientId);
   },
   
-  // Validate 42 Client Secret format
-  validateClientSecret: (clientSecret) => {
-    if (!clientSecret || typeof clientSecret !== 'string') return false;
-    
-    // Client secrets should be at least 32 characters
-    return clientSecret.length >= 32 && clientSecret.length <= 128;
-  },
-  
   // Validate redirect URI
   validateRedirectUri: (uri) => {
     try {
@@ -120,7 +105,7 @@ export const envConfig = {
     }
   },
   
-  // Get configuration with validation
+  // Get configuration with validation (FRONTEND SAFE - NO CLIENT SECRET)
   getConfig: () => {
     const validation = envConfig.validate();
     
@@ -131,12 +116,12 @@ export const envConfig = {
     if (validation.warnings.length > 0) {
       console.warn('Environment configuration warnings:\n', validation.warnings.join('\n'));
     }
-    
-    // Return sanitized configuration
+
+    // Return sanitized configuration (CLIENT SECRET EXCLUDED)
     return {
       oauth: {
         clientId: import.meta.env.VITE_42_CLIENT_ID,
-        clientSecret: import.meta.env.VITE_42_CLIENT_SECRET,
+        // CLIENT SECRET IS HANDLED SERVER-SIDE ONLY
         redirectUri: import.meta.env.VITE_42_REDIRECT_URI,
         authorizeUrl: import.meta.env.VITE_42_AUTHORIZE_URL || envConfig.optional['VITE_42_AUTHORIZE_URL'],
         tokenUrl: import.meta.env.VITE_42_TOKEN_URL || envConfig.optional['VITE_42_TOKEN_URL'],
