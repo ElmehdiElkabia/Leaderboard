@@ -17,85 +17,64 @@ export function OAuthCallback() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const exchangeCodeForToken = async () => {
+    const handleTokenFromURL = async () => {
+      // For implicit flow, the token comes in the URL fragment (after #)
+      const urlParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = urlParams.get("access_token");
+      const expiresIn = urlParams.get("expires_in");
+      const tokenType = urlParams.get("token_type");
+      
+      // Also check URL search params for authorization code (fallback)
       const code = searchParams.get("code");
 
-      if (!code) {
-        setError("No authorization code found");
-        setStatus("error");
-        return;
-      }
-
-      try {
-        // Check if client secret is available
-        const clientSecret = import.meta.env.VITE_42_CLIENT_SECRET;
-        if (!clientSecret) {
-          throw new Error("Client secret not configured. Please check your .env file.");
-        }
-
-        // Exchange the authorization code for an access token
-        const response = await fetch(oauthConfig.tokenUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            grant_type: "authorization_code",
-            client_id: oauthConfig.clientId,
-            client_secret: clientSecret,
-            code: code,
-            redirect_uri: oauthConfig.redirectUri,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.error_description ||
-              `HTTP error! status: ${response.status}`
+      if (accessToken) {
+        // Handle implicit flow (token directly in URL)
+        try {
+          // Store the access token
+          localStorage.setItem("42_access_token", accessToken);
+          localStorage.setItem(
+            "42_token_expires_at",
+            Date.now() + parseInt(expiresIn) * 1000
           );
+
+          // Fetch user info with the access token
+          const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+
+          if (!userResponse.ok) {
+            throw new Error("Failed to fetch user info");
+          }
+
+          const userData = await userResponse.json();
+
+          // Store user data
+          localStorage.setItem("42_user_data", JSON.stringify(userData));
+
+          setStatus("success");
+
+          // Redirect to dashboard after a brief delay
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 1000);
+        } catch (error) {
+          console.error("OAuth error:", error);
+          setError(error.message);
+          setStatus("error");
         }
-
-        const tokenData = await response.json();
-
-        // Store the access token
-        localStorage.setItem("42_access_token", tokenData.access_token);
-        localStorage.setItem("42_refresh_token", tokenData.refresh_token);
-        localStorage.setItem(
-          "42_token_expires_at",
-          Date.now() + tokenData.expires_in * 1000
-        );
-
-        // Fetch user info with the access token
-        const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
-          headers: {
-            Authorization: `Bearer ${tokenData.access_token}`,
-          },
-        });
-
-        if (!userResponse.ok) {
-          throw new Error("Failed to fetch user info");
-        }
-
-        const userData = await userResponse.json();
-
-        // Store user data
-        localStorage.setItem("42_user_data", JSON.stringify(userData));
-
-        setStatus("success");
-
-        // Redirect to dashboard after a brief delay
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1000);
-      } catch (error) {
-        console.error("OAuth error:", error);
-        setError(error.message);
+      } else if (code) {
+        // Handle authorization code flow (requires backend)
+        setError("Authorization code flow requires a backend server. Please use the implicit flow or set up a backend.");
+        setStatus("error");
+      } else {
+        setError("No access token or authorization code found");
         setStatus("error");
       }
     };
 
-    exchangeCodeForToken();
+    handleTokenFromURL();
   }, [searchParams, navigate]);
 
   if (status === "processing") {

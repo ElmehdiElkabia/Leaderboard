@@ -7,7 +7,8 @@ import { oauthConfig } from "@/lib/auth";
 
 export function LoginPage() {
   const handleLogin = () => {
-    const authUrl = `${oauthConfig.authorizeUrl}?client_id=${oauthConfig.clientId}&redirect_uri=${encodeURIComponent(oauthConfig.redirectUri)}&response_type=code`;
+    // Use implicit flow instead of authorization code flow
+    const authUrl = `${oauthConfig.authorizeUrl}?client_id=${oauthConfig.clientId}&redirect_uri=${encodeURIComponent(oauthConfig.redirectUri)}&response_type=token&scope=public`;
     window.location.href = authUrl;
   };
 
