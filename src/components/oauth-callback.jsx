@@ -10,6 +10,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { oauthConfig } from "@/lib/auth";
 import { corsProxy } from "@/lib/cors-proxy";
+import { oauthProxy } from "@/lib/oauth-proxy";
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -34,40 +35,81 @@ export function OAuthCallback() {
           throw new Error("Client secret not configured. Please check your .env file.");
         }
 
-        // Use FormData instead of JSON to avoid CORS preflight
-        const formData = new FormData();
-        formData.append('grant_type', 'authorization_code');
-        formData.append('client_id', oauthConfig.clientId);
-        formData.append('client_secret', clientSecret);
-        formData.append('code', code);
-        formData.append('redirect_uri', oauthConfig.redirectUri);
+        // Prepare the token exchange data
+        const requestData = {
+          grant_type: 'authorization_code',
+          client_id: oauthConfig.clientId,
+          client_secret: clientSecret,
+          code: code,
+          redirect_uri: oauthConfig.redirectUri,
+        };
 
-        // Try direct request first, then fallback to CORS proxy
-        let response;
-        try {
-          // Exchange the authorization code for an access token
-          response = await fetch(oauthConfig.tokenUrl, {
-            method: "POST",
-            body: formData,
-          });
-        } catch (corsError) {
-          console.log("Direct request failed, trying CORS proxy...");
-          // Fallback to CORS proxy
-          response = await corsProxy.fetch(oauthConfig.tokenUrl, {
-            method: "POST",
-            body: formData,
-          });
+        // Convert to URL-encoded format (instead of FormData for better proxy compatibility)
+        const formBody = Object.keys(requestData)
+          .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
+          .join('&');
+
+        // Try multiple approaches to handle CORS issues
+        let tokenData;
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (attempts < maxAttempts && !tokenData) {
+          attempts++;
+          
+          try {
+            if (attempts === 1) {
+              // Attempt 1: Direct request
+              console.log("Attempt 1: Direct request to 42 API...");
+              const response = await fetch(oauthConfig.tokenUrl, {
+                method: "POST",
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formBody,
+              });
+              
+              if (response.ok) {
+                tokenData = await response.json();
+              } else {
+                throw new Error(`HTTP ${response.status}`);
+              }
+              
+            } else if (attempts === 2) {
+              // Attempt 2: CORS proxy
+              console.log("Attempt 2: Using CORS proxy...");
+              const response = await corsProxy.fetch(oauthConfig.tokenUrl, {
+                method: "POST",
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formBody,
+              });
+              
+              if (response.ok) {
+                tokenData = await response.json();
+              } else {
+                throw new Error(`Proxy HTTP ${response.status}`);
+              }
+              
+            } else if (attempts === 3) {
+              // Attempt 3: PHP proxy
+              console.log("Attempt 3: Using PHP proxy...");
+              tokenData = await oauthProxy.exchangeToken(
+                code,
+                oauthConfig.clientId,
+                clientSecret,
+                oauthConfig.redirectUri
+              );
+            }
+            
+          } catch (error) {
+            console.log(`Attempt ${attempts} failed:`, error.message);
+            if (attempts === maxAttempts) {
+              throw new Error(`All token exchange attempts failed. Last error: ${error.message}`);
+            }
+          }
         }
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.error_description ||
-              `HTTP error! status: ${response.status}`
-          );
-        }
-
-        const tokenData = await response.json();
 
         // Store the access token
         localStorage.setItem("42_access_token", tokenData.access_token);
@@ -79,18 +121,58 @@ export function OAuthCallback() {
           Date.now() + tokenData.expires_in * 1000
         );
 
-        // Fetch user info with the access token
-        const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
-          headers: {
-            Authorization: `Bearer ${tokenData.access_token}`,
-          },
-        });
-
-        if (!userResponse.ok) {
-          throw new Error("Failed to fetch user info");
+        // Fetch user info with multiple fallback methods
+        let userData;
+        let userAttempts = 0;
+        const maxUserAttempts = 3;
+        
+        while (userAttempts < maxUserAttempts && !userData) {
+          userAttempts++;
+          
+          try {
+            if (userAttempts === 1) {
+              // Attempt 1: Direct request
+              console.log("Fetching user data: Direct request...");
+              const userResponse = await fetch(`${oauthConfig.apiBaseUrl}/me`, {
+                headers: {
+                  Authorization: `Bearer ${tokenData.access_token}`,
+                },
+              });
+              
+              if (userResponse.ok) {
+                userData = await userResponse.json();
+              } else {
+                throw new Error(`HTTP ${userResponse.status}`);
+              }
+              
+            } else if (userAttempts === 2) {
+              // Attempt 2: CORS proxy
+              console.log("Fetching user data: CORS proxy...");
+              const userResponse = await corsProxy.fetch(`${oauthConfig.apiBaseUrl}/me`, {
+                headers: {
+                  Authorization: `Bearer ${tokenData.access_token}`,
+                },
+              });
+              
+              if (userResponse.ok) {
+                userData = await userResponse.json();
+              } else {
+                throw new Error(`Proxy HTTP ${userResponse.status}`);
+              }
+              
+            } else if (userAttempts === 3) {
+              // Attempt 3: PHP proxy
+              console.log("Fetching user data: PHP proxy...");
+              userData = await oauthProxy.getUser(tokenData.access_token);
+            }
+            
+          } catch (userError) {
+            console.log(`User data attempt ${userAttempts} failed:`, userError.message);
+            if (userAttempts === maxUserAttempts) {
+              throw new Error(`All user data attempts failed. Last error: ${userError.message}`);
+            }
+          }
         }
-
-        const userData = await userResponse.json();
 
         // Store user data
         localStorage.setItem("42_user_data", JSON.stringify(userData));
