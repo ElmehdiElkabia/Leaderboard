@@ -1,6 +1,6 @@
 import { Trophy, Code, LogOut, User } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-clean";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

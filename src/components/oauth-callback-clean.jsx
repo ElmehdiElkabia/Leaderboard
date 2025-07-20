@@ -8,19 +8,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { auth } from "@/lib/auth-clean";
 
-export function OAuthCallbackSimple() {
+export function OAuthCallbackClean() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("processing");
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const exchangeCodeForToken = async () => {
+    const handleOAuthCallback = async () => {
       try {
         const code = searchParams.get("code");
-        const state = searchParams.get("state");
         const error = searchParams.get("error");
 
         // Check for OAuth errors
@@ -33,64 +31,50 @@ export function OAuthCallbackSimple() {
           throw new Error("Missing authorization code");
         }
 
-        // Use the simplified OAuth endpoint
-        const response = await fetch('/api/oauth-token-simple', {
+        // Send code to backend - backend handles everything
+        const response = await fetch('/api/oauth-complete', {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
           },
           body: JSON.stringify({
-            code: code,
-            state: state
+            code: code
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.error_description ||
-              `Authentication failed: ${response.status}`
+            errorData.error || `Authentication failed: ${response.status}`
           );
         }
 
-        const tokenData = await response.json();
+        const authData = await response.json();
 
-        // Validate token data
-        if (!tokenData.access_token) {
-          throw new Error('Invalid token response');
+        // Validate response
+        if (!authData.success || !authData.user) {
+          throw new Error('Invalid authentication response');
         }
 
-        // Fetch user info from 42 API directly
-        const userResponse = await fetch('https://api.intra.42.fr/v2/me', {
-          headers: {
-            Authorization: `Bearer ${tokenData.access_token}`,
-          },
-        });
+        // Store only safe session data (no OAuth tokens)
+        localStorage.setItem('user_session', JSON.stringify({
+          user: authData.user,
+          sessionToken: authData.user.sessionToken,
+          expiresAt: authData.user.expiresAt,
+          authenticatedAt: new Date().toISOString()
+        }));
 
-        if (!userResponse.ok) {
-          throw new Error(`Failed to fetch user info: ${userResponse.status}`);
-        }
-
-        const userData = await userResponse.json();
-
-        // Validate user data
-        if (!userData.id || !userData.login) {
-          throw new Error('Invalid user data received');
-        }
-
-        // Store authentication data
-        const success = auth.setAuthData(tokenData, userData);
-        if (!success) {
-          throw new Error('Failed to store authentication data');
-        }
+        // Store simple auth flag
+        localStorage.setItem('isAuthenticated', 'true');
 
         setStatus("success");
 
-        // Redirect to dashboard after a brief delay
+        // Redirect to home page
         setTimeout(() => {
           navigate("/", { replace: true });
         }, 1000);
+
       } catch (error) {
         console.error("OAuth error:", error);
         setError(error.message);
@@ -98,7 +82,7 @@ export function OAuthCallbackSimple() {
       }
     };
 
-    exchangeCodeForToken();
+    handleOAuthCallback();
   }, [searchParams, navigate]);
 
   if (status === "processing") {
@@ -111,7 +95,7 @@ export function OAuthCallbackSimple() {
               Authenticating
             </CardTitle>
             <CardDescription>
-              Please wait while we complete your authentication...
+              Securely processing your authentication...
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -120,7 +104,7 @@ export function OAuthCallbackSimple() {
                 <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: "60%" }}></div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Exchanging authorization code...
+                Backend processing...
               </p>
             </div>
           </CardContent>
@@ -136,7 +120,7 @@ export function OAuthCallbackSimple() {
           <CardHeader className="text-center">
             <CardTitle className="text-green-600">Authentication Successful!</CardTitle>
             <CardDescription>
-              Redirecting you to the dashboard...
+              Welcome to the leaderboard...
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -156,7 +140,7 @@ export function OAuthCallbackSimple() {
           <CardHeader className="text-center">
             <CardTitle className="text-red-600">Authentication Failed</CardTitle>
             <CardDescription>
-              We encountered an error during authentication.
+              There was an issue with your authentication.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">

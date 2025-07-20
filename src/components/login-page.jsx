@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Trophy, Users, TrendingUp } from "lucide-react";
-import { auth, oauthConfig } from "@/lib/auth";
-import { security } from "@/lib/security";
+import { auth } from "@/lib/auth-clean";
 import { useState } from "react";
 
 export function LoginPage() {
@@ -16,14 +15,12 @@ export function LoginPage() {
       setIsLoading(true);
       setLoginError(null);
       
-      // Generate secure OAuth URL
-      const authUrl = auth.getOAuthUrl();
-      window.location.href = authUrl;
+      // Use clean auth - no frontend secrets
+      auth.loginWith42();
       
     } catch (error) {
       console.error('Login error:', error);
       setLoginError(error.message);
-      security.logSecurityEvent('login_error', { error: error.message });
     } finally {
       setIsLoading(false);
     }

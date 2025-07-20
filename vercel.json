@@ -1,6 +1,12 @@
 {
   "functions": {
-    "api/oauth-token-simple.js": {
+    "api/oauth-complete.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/leaderboard-data.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/campus-data.js": {
       "runtime": "nodejs18.x"
     }
   },

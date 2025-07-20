@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { auth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { auth } from "@/lib/auth-clean";
+import { api } from "@/lib/api-clean";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,39 +69,39 @@ export function RealLeaderboard() {
     setError(null);
     
     try {
-      // Use the new API utility to avoid CORS issues
-      const cursusUsers = await api.getCursusUsers({
-        'filter[campus_id]': campusId,
-        sort: '-level',
-        'page[size]': USERS_PER_PAGE,
-        'page[number]': page,
-        'filter[cursus_id]': '21'
-      });
+      // Use clean API - no direct 42 API calls
+      const response = await api.fetchLeaderboardData(campusId, page, USERS_PER_PAGE);
+      
+      if (!response.success || !response.data) {
+        throw new Error('Invalid response format');
+      }
+      
+      const cursusUsers = response.data;
       
       // Check if there are more pages
       setHasMore(cursusUsers.length === USERS_PER_PAGE);
       
       // Transform the data to match our leaderboard format
-      const transformedStudents = cursusUsers.map((cursusUser, index) => ({
-        id: cursusUser.user.id,
-        rank: ((page - 1) * USERS_PER_PAGE) + index + 1,
-        name: cursusUser.user.displayname || `${cursusUser.user.first_name} ${cursusUser.user.last_name}`,
-        login: cursusUser.user.login,
-        level: cursusUser.level?.toFixed(2) || "0.00",
-        grade: cursusUser.grade || "Novice",
-        correctionPoints: cursusUser.user.correction_point || 0,
-        wallet: cursusUser.user.wallet || 0,
-        location: cursusUser.user.location || "Unavailable",
-        avatar: cursusUser.user.image?.versions?.medium || cursusUser.user.image?.link,
-        campus: selectedCampus.name,
-        poolMonth: cursusUser.user.pool_month,
-        poolYear: cursusUser.user.pool_year,
-        isActive: cursusUser.user.active,
-        skills: cursusUser.skills || [],
-        blackholedAt: cursusUser.blackholed_at,
-        cursusId: cursusUser.cursus_id,
-        beginAt: cursusUser.begin_at,
-        endAt: cursusUser.end_at,
+      const transformedStudents = cursusUsers.map((user, index) => ({
+        id: user.id,
+        rank: user.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
+        name: user.login, // Backend provides safe data
+        login: user.login,
+        level: user.level?.toFixed(2) || "0.00",
+        grade: user.grade || "Novice",
+        correctionPoints: 0, // Not provided by backend for privacy
+        wallet: 0, // Not provided by backend for privacy
+        location: "Unavailable", // Not provided by backend for privacy
+        avatar: user.image,
+        campus: user.campus || selectedCampus.name,
+        poolMonth: null, // Not provided by backend for privacy
+        poolYear: null, // Not provided by backend for privacy
+        isActive: true, // Assume active if in leaderboard
+        skills: [], // Not provided by backend for privacy
+        blackholedAt: null, // Not provided by backend for privacy
+        cursusId: 21,
+        beginAt: null, // Not provided by backend for privacy
+        endAt: null, // Not provided by backend for privacy
       }));
 
       // Update students list

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { TopThree } from "./top-three";
 import { LeaderboardFilters } from "./leaderboard-filters";
 import { LeaderboardTable } from "./leaderboard-table";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-clean";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
 

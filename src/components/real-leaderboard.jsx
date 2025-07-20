@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { auth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { auth } from "@/lib/auth-clean";
+import { api } from "@/lib/api-clean";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

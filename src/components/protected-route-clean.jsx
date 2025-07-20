@@ -2,18 +2,17 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "@/lib/auth-clean";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Shield, AlertTriangle } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 
-export function ProtectedRoute({ children, requireRecentAuth = false }) {
+export function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [securityCheck, setSecurityCheck] = useState({ passed: false, message: '' });
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        // Basic authentication check using clean auth
+        // Check authentication using clean auth
         const authenticated = auth.isAuthenticated();
         
         if (!authenticated) {
@@ -23,10 +22,8 @@ export function ProtectedRoute({ children, requireRecentAuth = false }) {
           return;
         }
 
-        // Enhanced security checks
-        // Session is valid
+        // User is authenticated
         setIsAuthenticated(true);
-        setSecurityCheck({ passed: true, message: '' });
         setIsLoading(false);
         
       } catch (error) {
@@ -38,25 +35,7 @@ export function ProtectedRoute({ children, requireRecentAuth = false }) {
     };
 
     checkAuth();
-  }, [navigate, requireRecentAuth]);
-        
-      } catch (error) {
-        console.error('Auth check error:', error);
-        security.logSecurityEvent('auth_check_error', { error: error.message });
-        auth.logout();
-        navigate('/login', { replace: true });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Set up periodic auth check every 5 minutes
-    const authCheckInterval = setInterval(checkAuth, 300000);
-    
-    return () => clearInterval(authCheckInterval);
-  }, [navigate, requireRecentAuth]);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -68,13 +47,13 @@ export function ProtectedRoute({ children, requireRecentAuth = false }) {
               Verifying Access
             </CardTitle>
             <CardDescription>
-              Performing security checks...
+              Checking authentication...
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Shield className="w-4 h-4" />
-              Secured by 1337 Leaderboard
+              1337 Leaderboard
             </div>
           </CardContent>
         </Card>
@@ -86,21 +65,5 @@ export function ProtectedRoute({ children, requireRecentAuth = false }) {
     return null; // Will redirect to login
   }
 
-  return (
-    <>
-      {securityCheck.message && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">{securityCheck.message}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      {children}
-    </>
-  );
+  return children;
 }

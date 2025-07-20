@@ -4,13 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
-import { SecurityMonitor } from "@/components/security-monitor";
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound";
-import { OAuthCallbackSimple } from "./components/oauth-callback-simple.jsx";
+import { OAuthCallbackClean } from "./components/oauth-callback-clean.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
-import { ProtectedRoute } from "./components/protected-route.jsx";
+import { ProtectedRoute } from "./components/protected-route-clean.jsx";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -26,11 +25,6 @@ const App = () => {
       
       if (missing.length > 0) {
         throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-      }
-
-      // Security check: Warn if client secret is in frontend
-      if (import.meta.env.VITE_42_CLIENT_SECRET) {
-        console.warn('🚨 SECURITY WARNING: Client secret detected in frontend environment! This should be server-side only.');
       }
       
     } catch (error) {
@@ -73,7 +67,7 @@ const App = () => {
           >
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/oauth/callback" element={<OAuthCallbackSimple />} />
+              <Route path="/oauth/callback" element={<OAuthCallbackClean />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />
@@ -83,11 +77,6 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            
-            {/* Security Monitor - only show in development or for authenticated users */}
-            {(import.meta.env.DEV || window.localStorage.getItem('42_access_token')) && (
-              <SecurityMonitor />
-            )}
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
