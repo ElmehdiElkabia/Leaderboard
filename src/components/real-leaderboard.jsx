@@ -108,7 +108,7 @@ export function RealLeaderboard() {
         "filter[campus_id]": campusId.toString(),
       });
 
-      console.log("API URL: ", params.toString());
+      // console.log("API URL: ", params.toString());
       
       const response = await auth.apiRequest(
         `https://api.intra.42.fr/v2/cursus_users?${params.toString()}`
@@ -129,7 +129,7 @@ export function RealLeaderboard() {
         login: item.user.login,
         kind: item.user.kind,
         image: item.user.image?.versions?.medium,
-        staff: item.user.staff !== undefined ? item.user.staff : false,
+        staff: false, // Default to false, can be updated if needed
         correction_point: item.user.correction_point,
         pool_month: item.user.pool_month,
         pool_year: item.user.pool_year,
