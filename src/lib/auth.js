@@ -55,8 +55,8 @@ export const auth = {
 
 // OAuth configuration
 export const oauthConfig = {
-  clientId: 'u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d',
-  redirectUri: 'http://localhost:8080',
+  clientId: "u-s4t2ud-a126bdf95a4737cc91f85f57010905df1a2007f6aa0ae83d3dc9893be2851b9d",
+  redirectUri: 'https://www.13namima.me/callback',
   authorizeUrl: 'https://api.intra.42.fr/oauth/authorize',
   tokenUrl: 'https://api.intra.42.fr/oauth/token',
   apiBaseUrl: 'https://api.intra.42.fr/v2',

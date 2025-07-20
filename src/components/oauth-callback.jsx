@@ -28,15 +28,12 @@ export function OAuthCallback() {
 
       try {
         // Exchange the authorization code for an access token
-        const response = await fetch(oauthConfig.tokenUrl, {
+        const response = await fetch("https://www.13namima.me/api/auth", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            grant_type: "authorization_code",
-            client_id: oauthConfig.clientId,
-            client_secret: import.meta.env.VITE_42_CLIENT_SECRET,
             code: code,
             redirect_uri: oauthConfig.redirectUri,
           }),

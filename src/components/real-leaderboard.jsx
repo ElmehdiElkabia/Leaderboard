@@ -108,7 +108,6 @@ export function RealLeaderboard() {
         "filter[campus_id]": campusId.toString(),
       });
 
-      console.log("API URL: ", params.toString());
       
       const response = await auth.apiRequest(
         `https://api.intra.42.fr/v2/cursus_users?${params.toString()}`
