@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "api/oauth-complete.js": {
-      "runtime": "@vercel/node@18"
-    },
-    "api/leaderboard-data.js": {
-      "runtime": "@vercel/node@18"
-    },
-    "api/campus-data.js": {
-      "runtime": "@vercel/node@18"
-    }
-  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
