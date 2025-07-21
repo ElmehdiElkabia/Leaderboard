@@ -8,9 +8,9 @@ import { Analytics } from '@vercel/analytics/react';
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound";
-import { OAuthCallbackClean } from "./components/oauth-callback-clean.jsx";
+import { OAuthCallback } from "./components/oauth-callback.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
-import { ProtectedRoute } from "./components/protected-route-clean.jsx";
+import { ProtectedRoute } from "./components/protected-route.jsx";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -68,7 +68,7 @@ const App = () => {
           >
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/oauth/callback" element={<OAuthCallbackClean />} />
+              <Route path="/oauth/callback" element={<OAuthCallback />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />

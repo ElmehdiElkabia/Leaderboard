@@ -12,7 +12,7 @@ export default function AuthHandler() {
   useEffect(() => {
     // Check if user is already authenticated using session token
     if (auth.isAuthenticated()) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [navigate]);
 
