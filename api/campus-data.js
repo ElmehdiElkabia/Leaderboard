@@ -1,5 +1,5 @@
 // Backend campus data endpoint - /api/campus-data.js
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Set CORS headers
   const origin = req.headers.origin;
   const allowedOrigins = [
