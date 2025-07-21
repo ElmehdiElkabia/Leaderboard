@@ -46,10 +46,23 @@ module.exports = async function handler(req, res) {
     const clientSecret = process.env.VITE_42_CLIENT_SECRET;
     const redirectUri = process.env.VITE_42_REDIRECT_URI;
 
+    console.log('Environment check:', {
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      hasRedirectUri: !!redirectUri,
+      clientIdLength: clientId ? clientId.length : 0,
+      redirectUri: redirectUri || 'not set'
+    });
+
     if (!clientId || !clientSecret || !redirectUri) {
-      console.error('OAuth configuration missing');
+      console.error('OAuth configuration missing:', {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+        hasRedirectUri: !!redirectUri
+      });
       return res.status(500).json({ 
-        error: 'Server configuration error'
+        error: 'Server configuration error',
+        details: 'OAuth environment variables not properly configured'
       });
     }
 
