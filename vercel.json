@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "api/oauth-complete.js": {
-      "runtime": "node@20.x"
-    },
-    "api/leaderboard-data.js": {
-      "runtime": "node@20.x"
-    },
-    "api/campus-data.js": {
-      "runtime": "node@20.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
