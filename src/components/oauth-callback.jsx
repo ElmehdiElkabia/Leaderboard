@@ -22,95 +22,60 @@ export function OAuthCallback() {
     const exchangeCodeForToken = async () => {
       try {
         const code = searchParams.get("code");
-        const state = searchParams.get("state");
         const error = searchParams.get("error");
 
         // Check for OAuth errors
         if (error) {
-          security.logSecurityEvent('oauth_error', { error });
           throw new Error(`OAuth error: ${error}`);
         }
 
         // Validate required parameters
         if (!code) {
-          security.logSecurityEvent('oauth_missing_code');
           throw new Error("Missing authorization code");
         }
 
-        // Validate state parameter (CSRF protection)
-        if (!auth.validateOAuthState(state)) {
-          throw new Error('Invalid state parameter. Possible CSRF attack.');
-        }
-
-        // Rate limiting check
-        const clientId = navigator.userAgent + window.location.hostname;
-        if (security.rateLimiter.isBlocked(clientId)) {
-          security.logSecurityEvent('oauth_callback_rate_limited');
-          throw new Error('Too many authentication attempts. Please try again later.');
-        }
-
-        security.rateLimiter.recordAttempt(clientId);
-
-        // Exchange code for token through secure obfuscated backend
-        const response = await apiSecurity.secureRequest('oauth-token', {
+        // Exchange the authorization code for user data (server-side only)
+        const response = await fetch("https://www.13namima.me/api/oauth-complete", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
           body: JSON.stringify({
-            code: security.sanitizeInput(code),
-            state: security.sanitizeInput(state)
+            code: code
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          security.logSecurityEvent('token_exchange_failed', { 
-            status: response.status,
-            error: errorData.error_description 
-          });
           throw new Error(
-            errorData.error_description ||
+            errorData.details || errorData.error ||
               `Authentication failed: ${response.status}`
           );
         }
 
-        const tokenData = await response.json();
+        const authData = await response.json();
 
-        // Validate token data
-        if (!tokenData.access_token) {
-          security.logSecurityEvent('invalid_token_response');
-          throw new Error('Invalid token response');
+        // Validate response data
+        if (!authData.success || !authData.user) {
+          throw new Error('Invalid authentication response');
         }
 
-        // Fetch user info using obfuscated backend API with security headers
-        const userResponse = await fetch('/api/profile_info', {
-          headers: {
-            Authorization: `Bearer ${tokenData.access_token}`,
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        });
+        const userData = authData.user;
 
-        if (!userResponse.ok) {
-          security.logSecurityEvent('user_data_fetch_failed', { 
-            status: userResponse.status 
-          });
-          throw new Error(`Failed to fetch user info: ${userResponse.status}`);
-        }
-
-        const userData = await userResponse.json();
-
-        // Validate user data
-        if (!userData.id || !userData.login) {
-          security.logSecurityEvent('invalid_user_data');
-          throw new Error('Invalid user data received');
-        }
-
-        // Store authentication data securely
-        const success = auth.setAuthData(tokenData, userData);
-        if (!success) {
-          throw new Error('Failed to store authentication data');
-        }
-
-        // Clear rate limiting on successful auth
-        security.rateLimiter.clearAttempts(clientId);
+        // Store secure session data (no OAuth tokens exposed)
+        localStorage.setItem("user_session_token", userData.sessionToken);
+        localStorage.setItem("user_session_expires", userData.expiresAt);
+        localStorage.setItem("user_data", JSON.stringify({
+          id: userData.id,
+          login: userData.login,
+          email: userData.email,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          image: userData.image,
+          campus: userData.campus,
+          level: userData.level
+        }));
 
         setStatus("success");
 
@@ -120,9 +85,6 @@ export function OAuthCallback() {
         }, 1000);
       } catch (error) {
         console.error("OAuth error:", error);
-        security.logSecurityEvent('oauth_callback_error', { 
-          error: error.message 
-        });
         setError(error.message);
         setStatus("error");
       }
