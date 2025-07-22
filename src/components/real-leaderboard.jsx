@@ -141,19 +141,21 @@ export function RealLeaderboard() {
       
       // Check if there are more pages
       setHasMore(leaderboardData.length === USERS_PER_PAGE);
-            const filteredUsers = leaderboardData.map((item) => ({
+      
+      // Extract and flatten the user data from the API response
+      const filteredUsers = leaderboardData.map((item) => ({
         id: item.user.id,
         fullname: item.user.usual_full_name || item.user.displayname,
         email: item.user.email,
         login: item.user.login,
         kind: item.user.kind,
         image: item.user.image?.versions?.medium,
-        staff: item.user.staff || false, // Default to false, can be updated if needed
-        correction_point: item.correction_point,
-        pool_month: item.pool_month,
-        pool_year: item.pool_year,
+        staff: item.user["staff?"] || false,
+        correction_point: item.user.correction_point,
+        pool_month: item.user.pool_month,
+        pool_year: item.user.pool_year,
         location: item.user.location,
-        wallet: item.wallet,
+        wallet: item.user.wallet,
         level: item.level,
         grade: item.grade,
         skills: item.skills || [],
@@ -161,7 +163,7 @@ export function RealLeaderboard() {
         begin_at: item.begin_at,
         end_at: item.end_at,
         cursus_id: item.cursus_id,
-        active: item.user.active,
+        active: item.user["active?"],
       }));
 
       
@@ -174,19 +176,19 @@ export function RealLeaderboard() {
           login: userData.login,
           level: userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || "0.00"),
           grade: userData.grade || "Student",
-          correctionPoints: 0, // Not provided by backend for privacy
-          wallet: 0, // Not provided by backend for privacy
-          location: "Hidden", // Backend doesn't expose location for privacy
+          correctionPoints: userData.correction_point || 0,
+          wallet: userData.wallet || 0,
+          location: userData.location || "Not specified",
           avatar: userData.image,
           campus: userData.campus || selectedCampus.name,
-          poolMonth: null, // Not provided by backend for privacy
-          poolYear: null, // Not provided by backend for privacy
-          isActive: true, // Default to active
-          skills: [], // Not provided by backend for privacy
-          blackholedAt: null, // Not provided by backend for privacy
+          poolMonth: userData.pool_month || null,
+          poolYear: userData.pool_year || null,
+          isActive: userData.active !== false,
+          skills: userData.skills || [],
+          blackholedAt: userData.blackholed_at || null,
           cursusId: parseInt(studentType),
-          beginAt: null, // Not provided by backend for privacy
-          endAt: null, // Not provided by backend for privacy
+          beginAt: userData.begin_at || null,
+          endAt: userData.end_at || null,
         };
       });
 
