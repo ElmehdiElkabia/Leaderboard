@@ -123,7 +123,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Step 3: Return minimal, safe data to frontend
+    // Step 3: Fetch additional user details for richer navbar data
+    const cursusUser = userData.cursus_users?.find(cu => cu.cursus_id === 21) || userData.cursus_users?.[0];
+
+    // Step 4: Return comprehensive, safe data to frontend
     // NO sensitive OAuth data is sent to frontend
     const safeUserData = {
       id: userData.id,
@@ -131,10 +134,34 @@ export default async function handler(req, res) {
       email: userData.email,
       first_name: userData.first_name,
       last_name: userData.last_name,
-      image: userData.image?.versions?.medium || userData.image?.link,
+      usual_full_name: userData.usual_full_name,
+      displayname: userData.displayname,
+      image: {
+        link: userData.image?.link,
+        versions: {
+          small: userData.image?.versions?.small,
+          medium: userData.image?.versions?.medium,
+          large: userData.image?.versions?.large
+        }
+      },
+      kind: userData.kind,
+      staff: userData.staff || false,
+      correction_point: userData.correction_point,
+      pool_month: userData.pool_month,
+      pool_year: userData.pool_year,
+      location: userData.location,
+      wallet: userData.wallet,
       campus: userData.campus?.[0] || null,
-      level: userData.cursus_users?.[0]?.level || 0,
-      // Generate a secure session token (not the OAuth token)
+      active: userData.active,
+      // Cursus-specific data
+      level: cursusUser?.level || 0,
+      grade: cursusUser?.grade || null,
+      cursus_id: cursusUser?.cursus_id || 21,
+      skills: cursusUser?.skills || [],
+      blackholed_at: cursusUser?.blackholed_at,
+      begin_at: cursusUser?.begin_at,
+      end_at: cursusUser?.end_at,
+      // Session management
       sessionToken: generateSecureSessionToken(userData.id),
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
     };
