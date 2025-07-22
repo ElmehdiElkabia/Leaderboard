@@ -148,12 +148,12 @@ export function RealLeaderboard() {
         login: item.user.login,
         kind: item.user.kind,
         image: item.user.image?.versions?.medium,
-        staff: false, // Default to false, can be updated if needed
-        correction_point: item.user.correction_point,
-        pool_month: item.user.pool_month,
-        pool_year: item.user.pool_year,
+        staff: item.user.staff || false, // Default to false, can be updated if needed
+        correction_point: item.correction_point,
+        pool_month: item.pool_month,
+        pool_year: item.pool_year,
         location: item.user.location,
-        wallet: item.user.wallet,
+        wallet: item.wallet,
         level: item.level,
         grade: item.grade,
         skills: item.skills || [],
