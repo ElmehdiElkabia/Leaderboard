@@ -148,9 +148,7 @@ export function Navbar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-
-                <DropdownMenuSeparator />
-
+                
                 <DropdownMenuSeparator />
 
                 {/* User Stats */}

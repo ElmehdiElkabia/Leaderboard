@@ -20,12 +20,22 @@ export default async function handler(req, res) {
   );
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  // Security headers
+  // Enhanced Security headers
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  res.setHeader("X-Download-Options", "noopen");
+  res.setHeader("X-DNS-Prefetch-Control", "off");
+  res.setHeader("Feature-Policy", "geolocation 'none'; microphone 'none'; camera 'none'");
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  res.setHeader("X-Request-Source", "academic-platform");
+  res.setHeader("X-API-Version", "v2.1.0");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -48,7 +58,9 @@ export default async function handler(req, res) {
 
     if (!campus_id) {
       return res.status(400).json({
-        error: "Campus ID is required",
+        error: "Required parameter missing",
+        code: "PARAM_REQUIRED",
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -57,9 +69,11 @@ export default async function handler(req, res) {
     const clientSecret = process.env.VITE_42_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      console.error("OAuth configuration missing for API access");
+      console.error("Authentication configuration missing for API access");
       return res.status(500).json({
-        error: "Server configuration error",
+        error: "Authentication service unavailable",
+        code: "AUTH_CONFIG_ERROR",
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -116,6 +130,21 @@ export default async function handler(req, res) {
         "X-Request-Type": "Progress-Data",
         "X-Client-Purpose": "Academic-Progress-Monitor",
         "X-Data-Source": "Educational-Platform",
+        "X-Session-ID": `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        "X-Request-ID": `req_${Math.random().toString(36).substr(2, 12)}`,
+        "X-Client-Version": "2.1.0",
+        "X-Platform": "web-dashboard",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "DNT": "1",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "X-Forwarded-For": req.headers["x-forwarded-for"] || req.connection.remoteAddress,
+        "X-Real-IP": req.headers["x-real-ip"] || req.connection.remoteAddress,
       },
     });
 
@@ -130,11 +159,14 @@ export default async function handler(req, res) {
 
     const safeData = Array.isArray(progressData) ? progressData : [progressData];
 
-    console.log("Leaderboard data fetched:", {
+    console.log("Progress data fetched:", {
       campus_id,
       page,
       count: safeData.length,
       timestamp: new Date().toISOString(),
+      session_id: `sess_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      client_version: "2.1.0",
+      request_source: "academic-platform",
     });
 
     return res.json({
@@ -147,9 +179,11 @@ export default async function handler(req, res) {
       },
     });
   } catch (error) {
-    console.error("Leaderboard API error:", error);
+    console.error("Progress API error:", error);
     return res.status(500).json({
-      error: "Internal server error",
+      error: "Service temporarily unavailable",
+      code: "SRV_TEMP_UNAVAIL",
+      timestamp: new Date().toISOString(),
     });
   }
 }
