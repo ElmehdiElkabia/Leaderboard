@@ -123,7 +123,7 @@ export function Navbar() {
                     <Avatar className="h-12 w-12">
                       <AvatarImage
                         src={
-                          userData.image?.versions?.medium ||
+                          userData.image?.versions?.small ||
                           userData.image?.link
                         }
                         alt={userData.displayname || userData.login}
@@ -148,7 +148,7 @@ export function Navbar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                
+
                 <DropdownMenuSeparator />
 
                 {/* User Stats */}
