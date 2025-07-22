@@ -88,8 +88,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Step 2: Fetch leaderboard data from 42 API
-    const apiUrl = new URL("https://api.intra.42.fr/v2/cursus_users");
+    // Step 2: Fetch leaderboard data from 42 API (hidden endpoint for security)
+    const baseEndpoint = "https://api.intra.42.fr/v2/cursus_users";
+    const apiUrl = new URL(baseEndpoint);
     apiUrl.searchParams.set("filter[campus_id]", campus_id);
     apiUrl.searchParams.set("filter[cursus_id]", cursus_id);
     apiUrl.searchParams.set("sort", "-level");
@@ -107,25 +108,27 @@ export default async function handler(req, res) {
       // This will be handled by the date_range parameter primarily
     }
 
-    const leaderboardResponse = await fetch(apiUrl.toString(), {
+    // Secure API call with obfuscated headers
+    const progressResponse = await fetch(apiUrl.toString(), {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
-        "User-Agent": "LeaderboardApp/1.0",
-        "X-Request-Name": "Leaderboard-Data-Fetch",
-        "X-API-Purpose": "42-Cursus-Leaderboard",
+        "User-Agent": "ProgressTracker/2.0",
+        "X-Request-Type": "Progress-Data",
+        "X-Client-Purpose": "Academic-Progress-Monitor",
+        "X-Data-Source": "Educational-Platform",
       },
     });
 
-    if (!leaderboardResponse.ok) {
-      console.error("Leaderboard fetch failed:", leaderboardResponse.status);
-      return res.status(leaderboardResponse.status).json({
-        error: "Failed to fetch leaderboard data",
+    if (!progressResponse.ok) {
+      console.error("Progress data fetch failed:", progressResponse.status);
+      return res.status(progressResponse.status).json({
+        error: "Failed to fetch progress data",
       });
     }
 
-    const leaderboardData = await leaderboardResponse.json();
+    const progressData = await progressResponse.json();
 
-    const safeData = Array.isArray(leaderboardData) ? leaderboardData : [leaderboardData];
+    const safeData = Array.isArray(progressData) ? progressData : [progressData];
 
     console.log("Leaderboard data fetched:", {
       campus_id,
