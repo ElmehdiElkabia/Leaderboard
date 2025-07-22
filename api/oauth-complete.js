@@ -123,8 +123,27 @@ export default async function handler(req, res) {
       });
     }
 
+    // Debug: Log the actual structure we're getting from 42 API
+    console.log('42 API User Data Structure:', {
+      hasCorrection: !!userData.correction_point,
+      hasWallet: !!userData.wallet,
+      hasCampus: !!userData.campus,
+      campusArray: userData.campus,
+      poolMonth: userData.pool_month,
+      poolYear: userData.pool_year,
+      cursusUsers: userData.cursus_users?.length || 0
+    });
+
     // Step 3: Fetch additional user details for richer navbar data
     const cursusUser = userData.cursus_users?.find(cu => cu.cursus_id === 21) || userData.cursus_users?.[0];
+    
+    // Extract campus information more robustly
+    let campusInfo = null;
+    if (userData.campus && Array.isArray(userData.campus) && userData.campus.length > 0) {
+      campusInfo = userData.campus[0];
+    } else if (cursusUser?.campus) {
+      campusInfo = cursusUser.campus;
+    }
 
     // Step 4: Return comprehensive, safe data to frontend
     // NO sensitive OAuth data is sent to frontend
@@ -146,12 +165,12 @@ export default async function handler(req, res) {
       },
       kind: userData.kind,
       staff: userData.staff || false,
-      correction_point: userData.correction_point,
-      pool_month: userData.pool_month,
-      pool_year: userData.pool_year,
-      location: userData.location,
-      wallet: userData.wallet,
-      campus: userData.campus?.[0] || null,
+      correction_point: userData.correction_point || 0,
+      pool_month: userData.pool_month || null,
+      pool_year: userData.pool_year || null,
+      location: userData.location || null,
+      wallet: userData.wallet || 0,
+      campus: campusInfo,
       active: userData.active,
       // Cursus-specific data
       level: cursusUser?.level || 0,

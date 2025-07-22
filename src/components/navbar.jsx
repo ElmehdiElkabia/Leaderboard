@@ -19,6 +19,15 @@ export function Navbar() {
   const userData = auth.getUserData();
   const isAuthenticated = auth.isAuthenticated();
 
+  // Debug: Log userData to see what we actually have
+  if (userData) {
+    console.log('Navbar userData:', userData);
+    console.log('Correction points:', userData.correction_point);
+    console.log('Wallet:', userData.wallet);
+    console.log('Campus:', userData.campus);
+    console.log('Pool year:', userData.pool_year);
+  }
+
   const handleLogout = () => {
     auth.logout();
     navigate("/login");
@@ -104,7 +113,7 @@ export function Navbar() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center gap-2 text-sm">
                       <GraduationCap className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Level {userData.level?.toFixed(2) || '0.00'}</span>
+                      <span className="font-medium">Level {userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || '0.00')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Star className="h-4 w-4 text-yellow-500" />
@@ -128,7 +137,7 @@ export function Navbar() {
                   {userData.campus && (
                     <div className="flex items-center gap-2 text-sm">
                       <Trophy className="h-4 w-4 text-orange-500" />
-                      <span>{userData.campus.name}</span>
+                      <span>{userData.campus.name || 'Unknown Campus'}</span>
                     </div>
                   )}
                   
@@ -139,7 +148,7 @@ export function Navbar() {
                     </div>
                   )}
                   
-                  {userData.pool_month && userData.pool_year && (
+                  {(userData.pool_month && userData.pool_year) && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Pool:</span>
                       <Badge variant="outline">
