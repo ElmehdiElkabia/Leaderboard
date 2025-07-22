@@ -64,8 +64,6 @@ export function RealLeaderboard() {
   const loadMoreButtonRef = useRef(null);
 
   const fetchLeaderboardData = async (campusId, page = 1, append = false, dateRange = null) => {
-    console.log('🚀 fetchLeaderboardData called with:', { campusId, page, append, dateRange });
-    
     if (page === 1) {
       setLoading(true);
       setStudents([]);
@@ -99,16 +97,6 @@ export function RealLeaderboard() {
         // For 42cursus, always use year range
         dateRangeToUse = selectedDateRange;
       }
-      
-      // Use the new API utility instead of direct calls
-      const apiParams = {
-        cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
-        "range[begin_at]": dateRangeToUse, // Use conditional date range
-        "page[size]": USERS_PER_PAGE.toString(),
-        "page[number]": page.toString(),
-        sort: "-level",
-        "filter[campus_id]": campusId.toString(),
-      };
 
       // Use our backend API instead of direct 42 API calls
       const params = new URLSearchParams({
@@ -116,11 +104,18 @@ export function RealLeaderboard() {
         page: page.toString(),
         per_page: USERS_PER_PAGE.toString(),
         cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
+        date_range: dateRangeToUse, // Add date range filter
+        pool_month: poolMonth !== "all" ? poolMonth : undefined // Add pool month filter
       });
       
+      // Remove undefined values
+      for (const [key, value] of [...params.entries()]) {
+        if (value === undefined || value === 'undefined') {
+          params.delete(key);
+        }
+      }
+      
       const apiUrl = `/api/leaderboard-data?${params.toString()}`;
-      console.log('📡 Making API call to:', apiUrl);
-      console.log('📋 Request params:', Object.fromEntries(params));
       
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -129,14 +124,11 @@ export function RealLeaderboard() {
         }
       });
       
-      console.log('📥 Response status:', response.status, response.statusText);
-      
       if (!response.ok) {
         throw new Error(`Failed to fetch leaderboard: ${response.status}`);
       }
       
       const apiResponse = await response.json();
-      console.log('✅ API response:', apiResponse);
       
       if (!apiResponse.success || !apiResponse.data) {
         throw new Error('Invalid response format');
@@ -151,7 +143,7 @@ export function RealLeaderboard() {
       const transformedStudents = leaderboardData.map((userData, index) => {
         return {
           id: userData.id,
-          rank: userData.rank,
+          rank: userData.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
           name: userData.login,
           login: userData.login,
           level: userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || "0.00"),
@@ -164,9 +156,9 @@ export function RealLeaderboard() {
           poolMonth: null, // Not provided by backend for privacy
           poolYear: null, // Not provided by backend for privacy
           isActive: true, // Default to active
-          skills: [],
+          skills: [], // Not provided by backend for privacy
           blackholedAt: null, // Not provided by backend for privacy
-          cursusId: 21,
+          cursusId: parseInt(studentType),
           beginAt: null, // Not provided by backend for privacy
           endAt: null, // Not provided by backend for privacy
         };
@@ -220,17 +212,8 @@ export function RealLeaderboard() {
   };
 
   useEffect(() => {
-    console.log('RealLeaderboard useEffect triggered');
-    console.log('Auth status:', auth.isAuthenticated());
-    console.log('Selected campus:', selectedCampus);
-    console.log('Year filter:', yearFilter);
-    console.log('Student type:', studentType);
-    
     if (auth.isAuthenticated() && selectedCampus) {
-      console.log('Starting fetchLeaderboardData for campus:', selectedCampus.id);
       fetchLeaderboardData(selectedCampus.id);
-    } else {
-      console.log('Not fetching data - Auth:', auth.isAuthenticated(), 'Campus:', selectedCampus);
     }
   }, [selectedCampus, yearFilter, studentType, poolMonth]); // Added all filter dependencies
 

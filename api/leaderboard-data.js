@@ -38,7 +38,9 @@ export default async function handler(req, res) {
       campus_id, 
       page = '1', 
       per_page = '100',
-      cursus_id = '21' // Default to 42 cursus
+      cursus_id = '21', // Default to 42 cursus
+      date_range, // Optional date range filter (e.g., "2024-01-01,2025-01-01")
+      pool_month // Optional pool month filter
     } = req.query;
     
     if (!campus_id) {
@@ -90,6 +92,17 @@ export default async function handler(req, res) {
     apiUrl.searchParams.set('sort', '-level');
     apiUrl.searchParams.set('page[number]', page);
     apiUrl.searchParams.set('page[size]', per_page);
+    
+    // Add date range filter if provided
+    if (date_range) {
+      apiUrl.searchParams.set('range[begin_at]', date_range);
+    }
+    
+    // Add pool month filter if provided (for Piscine students)
+    if (pool_month && pool_month !== 'all') {
+      // For pool month filtering, we need to add additional filters
+      // This will be handled by the date_range parameter primarily
+    }
     
     const leaderboardResponse = await fetch(apiUrl.toString(), {
       headers: {
