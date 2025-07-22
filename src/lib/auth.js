@@ -63,6 +63,19 @@ export const auth = {
 
     return response;
   },
+
+  // Initiate OAuth login with 42
+  loginWith42: () => {
+    const params = new URLSearchParams({
+      client_id: oauthConfig.clientId,
+      redirect_uri: oauthConfig.redirectUri,
+      response_type: 'code',
+      scope: 'public'
+    });
+    
+    const authUrl = `${oauthConfig.authorizeUrl}?${params.toString()}`;
+    window.location.href = authUrl;
+  },
 };
 
 // OAuth configuration (only client ID and redirect URI - no secrets)
