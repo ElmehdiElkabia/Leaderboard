@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
-import { api } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,69 +97,70 @@ export function RealLeaderboard() {
         // For 42cursus, always use year range
         dateRangeToUse = selectedDateRange;
       }
-      
-      // Use the new API utility instead of direct calls
-      const apiParams = {
-        cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
-        "range[begin_at]": dateRangeToUse, // Use conditional date range
-        "page[size]": USERS_PER_PAGE.toString(),
-        "page[number]": page.toString(),
-        sort: "-level",
-        "filter[campus_id]": campusId.toString(),
-      };
 
-      // Use the new API utility to avoid CORS issues
-      const cursusUsers = await api.getCursusUsers(apiParams);
+      // Use our backend API instead of direct 42 API calls
+      const params = new URLSearchParams({
+        campus_id: campusId.toString(),
+        page: page.toString(),
+        per_page: USERS_PER_PAGE.toString(),
+        cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
+        date_range: dateRangeToUse, // Add date range filter
+        pool_month: poolMonth !== "all" ? poolMonth : undefined // Add pool month filter
+      });
       
-      // Transform response similar to the Next.js API pattern
-      const filteredUsers = cursusUsers.map((item) => ({
-        id: item.user.id,
-        fullname: item.user.usual_full_name || item.user.displayname,
-        email: item.user.email,
-        login: item.user.login,
-        kind: item.user.kind,
-        image: item.user.image?.versions?.medium,
-        staff: false, // Default to false, can be updated if needed
-        correction_point: item.user.correction_point,
-        pool_month: item.user.pool_month,
-        pool_year: item.user.pool_year,
-        location: item.user.location,
-        wallet: item.user.wallet,
-        level: item.level,
-        grade: item.grade,
-        skills: item.skills || [],
-        blackholed_at: item.blackholed_at,
-        begin_at: item.begin_at,
-        end_at: item.end_at,
-        cursus_id: item.cursus_id,
-        active: item.user.active,
-      }));
+      // Remove undefined values
+      for (const [key, value] of [...params.entries()]) {
+        if (value === undefined || value === 'undefined') {
+          params.delete(key);
+        }
+      }
+      
+      const apiUrl = `/api/leaderboard-data?${params.toString()}`;
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch leaderboard: ${response.status}`);
+      }
+      
+      const apiResponse = await response.json();
+      
+      if (!apiResponse.success || !apiResponse.data) {
+        throw new Error('Invalid response format');
+      }
+      
+      const leaderboardData = apiResponse.data;
       
       // Check if there are more pages
-      setHasMore(filteredUsers.length === USERS_PER_PAGE);
+      setHasMore(leaderboardData.length === USERS_PER_PAGE);
       
-      // Transform the data to match our leaderboard format
-      const transformedStudents = filteredUsers.map((userData, index) => {
+      // Transform the backend data to match our frontend format
+      const transformedStudents = leaderboardData.map((userData, index) => {
         return {
           id: userData.id,
-          rank: ((page - 1) * USERS_PER_PAGE) + index + 1,
-          name: userData.fullname || `${userData.login}`,
+          rank: userData.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
+          name: userData.login,
           login: userData.login,
-          level: userData.level?.toFixed(2) || "0.00",
+          level: userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || "0.00"),
           grade: userData.grade || "Student",
-          correctionPoints: userData.correction_point || 0,
-          wallet: userData.wallet || 0,
-          location: userData.location || "Unavailable",
+          correctionPoints: 0, // Not provided by backend for privacy
+          wallet: 0, // Not provided by backend for privacy
+          location: "Hidden", // Backend doesn't expose location for privacy
           avatar: userData.image,
-          campus: selectedCampus.name,
-          poolMonth: userData.pool_month,
-          poolYear: userData.pool_year,
-          isActive: userData.active !== false,
-          skills: userData.skills || [],
-          blackholedAt: userData.blackholed_at,
-          cursusId: userData.cursus_id || 21,
-          beginAt: userData.begin_at,
-          endAt: userData.end_at,
+          campus: userData.campus || selectedCampus.name,
+          poolMonth: null, // Not provided by backend for privacy
+          poolYear: null, // Not provided by backend for privacy
+          isActive: true, // Default to active
+          skills: [], // Not provided by backend for privacy
+          blackholedAt: null, // Not provided by backend for privacy
+          cursusId: parseInt(studentType),
+          beginAt: null, // Not provided by backend for privacy
+          endAt: null, // Not provided by backend for privacy
         };
       });
 
