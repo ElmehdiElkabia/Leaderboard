@@ -5,6 +5,13 @@ export const auth = {
     const sessionToken = localStorage.getItem('user_session_token');
     const expiresAt = localStorage.getItem('user_session_expires');
     
+    console.log('🔐 Auth check:', { 
+      hasToken: !!sessionToken, 
+      expiresAt, 
+      now: new Date().toISOString(),
+      isExpired: expiresAt ? new Date().toISOString() >= expiresAt : 'no expiry'
+    });
+    
     if (!sessionToken || !expiresAt) return false;
     
     // Check session expiration

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { auth } from "@/lib/auth-clean";
+import { auth } from "@/lib/auth";
 
 export function OAuthCallbackSimple() {
   const [searchParams] = useSearchParams();

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Trophy, Users, TrendingUp } from "lucide-react";
-import { auth } from "@/lib/auth-clean";
+import { auth } from "@/lib/auth";
 import { useState } from "react";
 
 export function LoginPage() {

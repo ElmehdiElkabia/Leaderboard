@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { auth } from "@/lib/auth-clean";
+import { auth } from "@/lib/auth";
 import { Trophy, Star, Calendar, MapPin } from "lucide-react";
 
 export function UserInfoCard() {
