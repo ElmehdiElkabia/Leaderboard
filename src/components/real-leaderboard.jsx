@@ -130,6 +130,7 @@ export function RealLeaderboard() {
       
       const apiResponse = await response.json();
       
+
       if (!apiResponse.success || !apiResponse.data) {
         throw new Error('Invalid response format');
       }
@@ -140,9 +141,32 @@ export function RealLeaderboard() {
       
       // Check if there are more pages
       setHasMore(leaderboardData.length === USERS_PER_PAGE);
+            const filteredUsers = leaderboardData.map((item) => ({
+        id: item.user.id,
+        fullname: item.user.usual_full_name || item.user.displayname,
+        email: item.user.email,
+        login: item.user.login,
+        kind: item.user.kind,
+        image: item.user.image?.versions?.medium,
+        staff: false, // Default to false, can be updated if needed
+        correction_point: item.user.correction_point,
+        pool_month: item.user.pool_month,
+        pool_year: item.user.pool_year,
+        location: item.user.location,
+        wallet: item.user.wallet,
+        level: item.level,
+        grade: item.grade,
+        skills: item.skills || [],
+        blackholed_at: item.blackholed_at,
+        begin_at: item.begin_at,
+        end_at: item.end_at,
+        cursus_id: item.cursus_id,
+        active: item.user.active,
+      }));
+
       
       // Transform the backend data to match our frontend format
-      const transformedStudents = leaderboardData.map((userData, index) => {
+      const transformedStudents = filteredUsers.map((userData, index) => {
         return {
           id: userData.id,
           rank: userData.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
