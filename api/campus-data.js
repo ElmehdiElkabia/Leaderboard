@@ -96,10 +96,6 @@ export default async function handler(req, res) {
       // Remove any sensitive data
     }));
 
-    console.log('Campus data fetched:', {
-      count: safeCampusData.length,
-      timestamp: new Date().toISOString()
-    });
     
     return res.json({
       success: true,

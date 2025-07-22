@@ -46,13 +46,6 @@ export default async function handler(req, res) {
     const clientSecret = process.env.VITE_42_CLIENT_SECRET;
     const redirectUri = process.env.VITE_42_REDIRECT_URI;
 
-    console.log('Environment check:', {
-      hasClientId: !!clientId,
-      hasClientSecret: !!clientSecret,
-      hasRedirectUri: !!redirectUri,
-      clientIdLength: clientId ? clientId.length : 0,
-      redirectUri: redirectUri || 'not set'
-    });
 
     if (!clientId || !clientSecret || !redirectUri) {
       console.error('OAuth configuration missing:', {
@@ -123,43 +116,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Debug: Log ALL data we're getting from 42 API to see what's available
-    console.log('=== COMPLETE 42 API USER DATA ===');
-    console.log(JSON.stringify(userData, null, 2));
-    console.log('=== END 42 API DATA ===');
+   
 
-    // Debug: Log the actual structure we're getting from 42 API
-    console.log('42 API User Data Structure Analysis:', {
-      // Top level userData
-      topLevel_hasCorrection: !!userData.correction_point,
-      topLevel_correctionValue: userData.correction_point,
-      topLevel_hasWallet: !!userData.wallet,
-      topLevel_walletValue: userData.wallet,
-      
-      // Cursus users data (where the real data is)
-      cursusUsers: userData.cursus_users?.length || 0,
-      cursusUsersData: userData.cursus_users?.map(cu => ({
-        cursus_id: cu.cursus_id,
-        level: cu.level,
-        grade: cu.grade,
-        user_correction_point: cu.user?.correction_point,
-        user_wallet: cu.user?.wallet,
-        user_pool_month: cu.user?.pool_month,
-        user_pool_year: cu.user?.pool_year,
-        user_location: cu.user?.location,
-        user_kind: cu.user?.kind
-      })),
-      
-      // Campus data
-      hasCampus: !!userData.campus,
-      campusArray: userData.campus,
-      campusLength: userData.campus?.length,
-      
-      allTopLevelKeys: Object.keys(userData),
-      
-      // The detailed user data location
-      detailedUserLocation: userData.cursus_users?.[0]?.user ? 'cursus_users[0].user' : 'not found'
-    });
+
 
     // Step 3: Get all cursus information and extract nested user data
     const cursusUser = userData.cursus_users?.find(cu => cu.cursus_id === 21) || userData.cursus_users?.[0];
@@ -235,11 +194,6 @@ export default async function handler(req, res) {
       _debug_detailed_user_keys: Object.keys(detailedUser)
     };
 
-    console.log('Successful OAuth flow completion:', {
-      userId: userData.id,
-      login: userData.login,
-      timestamp: new Date().toISOString()
-    });
     
     return res.json({
       success: true,

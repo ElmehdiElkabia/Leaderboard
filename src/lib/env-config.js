@@ -180,7 +180,6 @@ export const envConfig = {
         }
       }
       
-      console.log('Environment configuration initialized successfully');
       return config;
     } catch (error) {
       console.error('Failed to initialize environment configuration:', error);

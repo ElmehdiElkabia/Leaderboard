@@ -28,37 +28,7 @@ export function Navbar() {
   const userData = auth.getUserData();
   const isAuthenticated = auth.isAuthenticated();
 
-  // Debug: Log ALL userData to see what we actually have
-  if (userData) {
-    console.log("=== COMPLETE NAVBAR USER DATA ===");
-    console.log("Full userData object:", userData);
-    console.log("Available keys:", Object.keys(userData));
-    console.log("=== SPECIFIC FIELD ANALYSIS ===");
-    console.log("Correction points:", {
-      value: userData.correction_point,
-      type: typeof userData.correction_point,
-      exists: userData.correction_point !== undefined,
-    });
-    console.log("Wallet:", {
-      value: userData.wallet,
-      type: typeof userData.wallet,
-      exists: userData.wallet !== undefined,
-    });
-    console.log("Campus:", {
-      value: userData.campus,
-      type: typeof userData.campus,
-      exists: userData.campus !== undefined,
-      all_campus_data: userData.all_campus_data,
-    });
-    console.log("Pool year:", {
-      value: userData.pool_year,
-      type: typeof userData.pool_year,
-      exists: userData.pool_year !== undefined,
-    });
-    console.log("All cursus data:", userData.all_cursus_data);
-    console.log("Raw debug keys:", userData._debug_raw_keys);
-    console.log("=== END NAVBAR DATA ANALYSIS ===");
-  }
+ 
 
   const handleLogout = () => {
     auth.logout();

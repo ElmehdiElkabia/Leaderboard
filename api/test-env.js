@@ -36,7 +36,6 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString()
     };
     
-    console.log('Environment check:', envCheck);
     
     return res.json({
       success: true,

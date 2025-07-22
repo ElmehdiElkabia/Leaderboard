@@ -166,16 +166,6 @@ export default async function handler(req, res) {
     const progressData = await progressResponse.json();
     const safeData = Array.isArray(progressData) ? progressData : [progressData];
 
-    console.log("Progress data retrieved:", {
-      campus_id,
-      page,
-      count: safeData.length,
-      timestamp: new Date().toISOString(),
-      session_id: `sess_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      client_version: "2.1.0",
-      request_source: "academic-platform",
-      request_method: "POST",
-    });
 
     return res.json({
       success: true,
