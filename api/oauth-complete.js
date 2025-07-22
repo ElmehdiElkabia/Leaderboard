@@ -123,31 +123,48 @@ export default async function handler(req, res) {
       });
     }
 
+    // Debug: Log ALL data we're getting from 42 API to see what's available
+    console.log('=== COMPLETE 42 API USER DATA ===');
+    console.log(JSON.stringify(userData, null, 2));
+    console.log('=== END 42 API DATA ===');
+
     // Debug: Log the actual structure we're getting from 42 API
-    console.log('42 API User Data Structure:', {
+    console.log('42 API User Data Structure Analysis:', {
       hasCorrection: !!userData.correction_point,
+      correctionValue: userData.correction_point,
       hasWallet: !!userData.wallet,
+      walletValue: userData.wallet,
       hasCampus: !!userData.campus,
       campusArray: userData.campus,
+      campusLength: userData.campus?.length,
       poolMonth: userData.pool_month,
       poolYear: userData.pool_year,
-      cursusUsers: userData.cursus_users?.length || 0
+      cursusUsers: userData.cursus_users?.length || 0,
+      cursusUsersData: userData.cursus_users?.map(cu => ({
+        cursus_id: cu.cursus_id,
+        level: cu.level,
+        grade: cu.grade,
+        campus: cu.campus
+      })),
+      allTopLevelKeys: Object.keys(userData)
     });
 
-    // Step 3: Fetch additional user details for richer navbar data
+    // Step 3: Get all cursus information (not just 42cursus)
     const cursusUser = userData.cursus_users?.find(cu => cu.cursus_id === 21) || userData.cursus_users?.[0];
     
-    // Extract campus information more robustly
+    // Extract campus information more robustly - try multiple sources
     let campusInfo = null;
     if (userData.campus && Array.isArray(userData.campus) && userData.campus.length > 0) {
       campusInfo = userData.campus[0];
     } else if (cursusUser?.campus) {
       campusInfo = cursusUser.campus;
+    } else if (userData.campus && typeof userData.campus === 'object') {
+      campusInfo = userData.campus;
     }
 
-    // Step 4: Return comprehensive, safe data to frontend
-    // NO sensitive OAuth data is sent to frontend
+    // Step 4: Return ALL available data (safely) to frontend for analysis
     const safeUserData = {
+      // Basic user info
       id: userData.id,
       login: userData.login,
       email: userData.email,
@@ -155,34 +172,50 @@ export default async function handler(req, res) {
       last_name: userData.last_name,
       usual_full_name: userData.usual_full_name,
       displayname: userData.displayname,
-      image: {
-        link: userData.image?.link,
-        versions: {
-          small: userData.image?.versions?.small,
-          medium: userData.image?.versions?.medium,
-          large: userData.image?.versions?.large
-        }
-      },
+      
+      // Image data
+      image: userData.image || null,
+      
+      // User properties
       kind: userData.kind,
-      staff: userData.staff || false,
-      correction_point: userData.correction_point || 0,
-      pool_month: userData.pool_month || null,
-      pool_year: userData.pool_year || null,
-      location: userData.location || null,
-      wallet: userData.wallet || 0,
-      campus: campusInfo,
+      staff: userData.staff,
+      correction_point: userData.correction_point,
+      pool_month: userData.pool_month,
+      pool_year: userData.pool_year,
+      location: userData.location,
+      wallet: userData.wallet,
       active: userData.active,
+      
+      // Campus information
+      campus: campusInfo,
+      all_campus_data: userData.campus, // Include raw campus data for analysis
+      
       // Cursus-specific data
-      level: cursusUser?.level || 0,
-      grade: cursusUser?.grade || null,
-      cursus_id: cursusUser?.cursus_id || 21,
-      skills: cursusUser?.skills || [],
+      level: cursusUser?.level,
+      grade: cursusUser?.grade,
+      cursus_id: cursusUser?.cursus_id,
+      skills: cursusUser?.skills,
       blackholed_at: cursusUser?.blackholed_at,
       begin_at: cursusUser?.begin_at,
       end_at: cursusUser?.end_at,
+      
+      // All cursus data for analysis
+      all_cursus_data: userData.cursus_users,
+      
+      // Additional fields that might exist
+      phone: userData.phone,
+      url: userData.url,
+      website: userData.website,
+      achievements: userData.achievements,
+      partnerships: userData.partnerships,
+      groups: userData.groups,
+      
       // Session management
       sessionToken: generateSecureSessionToken(userData.id),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      
+      // Raw data for debugging (remove in production)
+      _debug_raw_keys: Object.keys(userData)
     };
 
     console.log('Successful OAuth flow completion:', {

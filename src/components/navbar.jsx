@@ -19,13 +19,36 @@ export function Navbar() {
   const userData = auth.getUserData();
   const isAuthenticated = auth.isAuthenticated();
 
-  // Debug: Log userData to see what we actually have
+  // Debug: Log ALL userData to see what we actually have
   if (userData) {
-    console.log('Navbar userData:', userData);
-    console.log('Correction points:', userData.correction_point);
-    console.log('Wallet:', userData.wallet);
-    console.log('Campus:', userData.campus);
-    console.log('Pool year:', userData.pool_year);
+    console.log('=== COMPLETE NAVBAR USER DATA ===');
+    console.log('Full userData object:', userData);
+    console.log('Available keys:', Object.keys(userData));
+    console.log('=== SPECIFIC FIELD ANALYSIS ===');
+    console.log('Correction points:', {
+      value: userData.correction_point,
+      type: typeof userData.correction_point,
+      exists: userData.correction_point !== undefined
+    });
+    console.log('Wallet:', {
+      value: userData.wallet,
+      type: typeof userData.wallet,
+      exists: userData.wallet !== undefined
+    });
+    console.log('Campus:', {
+      value: userData.campus,
+      type: typeof userData.campus,
+      exists: userData.campus !== undefined,
+      all_campus_data: userData.all_campus_data
+    });
+    console.log('Pool year:', {
+      value: userData.pool_year,
+      type: typeof userData.pool_year,
+      exists: userData.pool_year !== undefined
+    });
+    console.log('All cursus data:', userData.all_cursus_data);
+    console.log('Raw debug keys:', userData._debug_raw_keys);
+    console.log('=== END NAVBAR DATA ANALYSIS ===');
   }
 
   const handleLogout = () => {
@@ -79,7 +102,7 @@ export function Navbar() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80" align="end" forceMount>
+              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex items-center justify-start gap-3 p-1">
                     <Avatar className="h-12 w-12">
@@ -105,6 +128,26 @@ export function Navbar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
+                
+                <DropdownMenuSeparator />
+                
+                {/* Debug section - show all available data */}
+                <div className="p-2 space-y-2 bg-muted/50">
+                  <p className="text-xs font-medium text-muted-foreground">DEBUG - Available Data:</p>
+                  <div className="text-xs space-y-1">
+                    <div>correction_point: {JSON.stringify(userData.correction_point)}</div>
+                    <div>wallet: {JSON.stringify(userData.wallet)}</div>
+                    <div>pool_year: {JSON.stringify(userData.pool_year)}</div>
+                    <div>pool_month: {JSON.stringify(userData.pool_month)}</div>
+                    <div>campus: {JSON.stringify(userData.campus)}</div>
+                    <div>all_campus_data: {JSON.stringify(userData.all_campus_data)}</div>
+                    <div>level: {JSON.stringify(userData.level)}</div>
+                    <div>grade: {JSON.stringify(userData.grade)}</div>
+                    <div>kind: {JSON.stringify(userData.kind)}</div>
+                    <div>staff: {JSON.stringify(userData.staff)}</div>
+                    <div>location: {JSON.stringify(userData.location)}</div>
+                  </div>
+                </div>
                 
                 <DropdownMenuSeparator />
                 
