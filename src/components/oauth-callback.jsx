@@ -66,15 +66,48 @@ export function OAuthCallback() {
         // Store secure session data (no OAuth tokens exposed)
         localStorage.setItem("user_session_token", userData.sessionToken);
         localStorage.setItem("user_session_expires", userData.expiresAt);
+        
+        // Store ALL user data that the backend provides (it's already safe)
         localStorage.setItem("user_data", JSON.stringify({
+          // Basic info
           id: userData.id,
           login: userData.login,
           email: userData.email,
           first_name: userData.first_name,
           last_name: userData.last_name,
+          usual_full_name: userData.usual_full_name,
+          displayname: userData.displayname,
+          
+          // Image
           image: userData.image,
+          
+          // User properties
+          kind: userData.kind,
+          staff: userData.staff,
+          correction_point: userData.correction_point,
+          pool_month: userData.pool_month,
+          pool_year: userData.pool_year,
+          location: userData.location,
+          wallet: userData.wallet,
+          active: userData.active,
+          
+          // Campus info
           campus: userData.campus,
-          level: userData.level
+          all_campus_data: userData.all_campus_data,
+          
+          // Academic info
+          level: userData.level,
+          grade: userData.grade,
+          cursus_id: userData.cursus_id,
+          skills: userData.skills,
+          blackholed_at: userData.blackholed_at,
+          begin_at: userData.begin_at,
+          end_at: userData.end_at,
+          
+          // Additional data
+          phone: userData.phone,
+          url: userData.url,
+          all_cursus_data: userData.all_cursus_data
         }));
 
         setStatus("success");

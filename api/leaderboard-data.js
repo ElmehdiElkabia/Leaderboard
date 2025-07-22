@@ -121,16 +121,18 @@ export default async function handler(req, res) {
     const leaderboardData = await leaderboardResponse.json();
 
     // Step 3: Return safe, processed data
-    const safeData = leaderboardData.map((user, index) => ({
-      id: user.id,
-      rank: ((parseInt(page) - 1) * parseInt(per_page)) + index + 1,
-      login: user.user?.login || 'unknown',
-      level: user.level || 0,
-      grade: user.grade || null,
-      campus: user.user?.campus?.[0]?.name || 'Unknown Campus',
-      image: user.user?.image?.versions?.small || user.user?.image?.link,
-      // Remove any sensitive data
-    }));
+    // const safeData = leaderboardData.map((user, index) => ({
+    //   id: user.id,
+    //   rank: ((parseInt(page) - 1) * parseInt(per_page)) + index + 1,
+    //   login: user.user?.login || 'unknown',
+    //   level: user.level || 0,
+    //   grade: user.grade || null,
+    //   campus: user.user?.campus?.[0]?.name || 'Unknown Campus',
+    //   image: user.user?.image?.versions?.small || user.user?.image?.link,
+    //   // Remove any sensitive data
+    // }));
+
+    const safeData = Array.isArray(leaderboardData) ? leaderboardData : [leaderboardData];
 
     console.log('Leaderboard data fetched:', {
       campus_id,

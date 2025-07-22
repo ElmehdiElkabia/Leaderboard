@@ -135,6 +135,8 @@ export function RealLeaderboard() {
       }
       
       const leaderboardData = apiResponse.data;
+
+      
       
       // Check if there are more pages
       setHasMore(leaderboardData.length === USERS_PER_PAGE);
