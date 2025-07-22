@@ -15,6 +15,21 @@ import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
+// Safe Analytics component that only loads in production
+const SafeAnalytics = () => {
+  // Only load analytics in production and when not blocked
+  if (import.meta.env.DEV || typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    return <Analytics />;
+  } catch (error) {
+    console.warn('Analytics failed to load:', error);
+    return null;
+  }
+};
+
 const App = () => {
   const [configError, setConfigError] = useState(null);
 
@@ -78,7 +93,7 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <Analytics />
+            <SafeAnalytics />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
