@@ -98,30 +98,39 @@ export function RealLeaderboard() {
         dateRangeToUse = selectedDateRange;
       }
 
-      // Use our backend API instead of direct 42 API calls
-      const params = new URLSearchParams({
-        campus_id: campusId.toString(),
-        page: page.toString(),
-        per_page: USERS_PER_PAGE.toString(),
-        cursus_id: studentType, // Use dynamic student type (21 for 42cursus, 9 for Piscine)
-        date_range: dateRangeToUse, // Add date range filter
-        pool_month: poolMonth !== "all" ? poolMonth : undefined // Add pool month filter
+      // Use our secure progress API with POST method
+      const requestPayload = {
+        campus_id: parseInt(campusId),
+        page: parseInt(page),
+        per_page: USERS_PER_PAGE,
+        cursus_id: parseInt(studentType),
+        date_range: dateRangeToUse,
+        pool_month: poolMonth !== "all" ? poolMonth : undefined,
+        filters: {
+          active_only: true,
+          sort_by: "level",
+          sort_order: "desc"
+        }
+      };
+
+      // Remove undefined values
+      Object.keys(requestPayload).forEach(key => {
+        if (requestPayload[key] === undefined) {
+          delete requestPayload[key];
+        }
       });
       
-      // Remove undefined values
-      for (const [key, value] of [...params.entries()]) {
-        if (value === undefined || value === 'undefined') {
-          params.delete(key);
-        }
-      }
-      
-      const apiUrl = `/api/leaderboard-data?${params.toString()}`;
+      const apiUrl = `/api/progress`;
       
       const response = await fetch(apiUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-        }
+          'X-Client-Purpose': 'Academic-Progress-Monitor',
+          'X-Platform': 'web-dashboard',
+        },
+        body: JSON.stringify(requestPayload)
       });
       
       if (!response.ok) {
