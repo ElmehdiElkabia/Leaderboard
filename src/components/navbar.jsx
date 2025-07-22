@@ -1,4 +1,13 @@
-import { Trophy, Code, LogOut, User, MapPin, Wallet, Star, GraduationCap } from "lucide-react";
+import {
+  Trophy,
+  Code,
+  LogOut,
+  User,
+  MapPin,
+  Wallet,
+  Star,
+  GraduationCap,
+} from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -21,34 +30,34 @@ export function Navbar() {
 
   // Debug: Log ALL userData to see what we actually have
   if (userData) {
-    console.log('=== COMPLETE NAVBAR USER DATA ===');
-    console.log('Full userData object:', userData);
-    console.log('Available keys:', Object.keys(userData));
-    console.log('=== SPECIFIC FIELD ANALYSIS ===');
-    console.log('Correction points:', {
+    console.log("=== COMPLETE NAVBAR USER DATA ===");
+    console.log("Full userData object:", userData);
+    console.log("Available keys:", Object.keys(userData));
+    console.log("=== SPECIFIC FIELD ANALYSIS ===");
+    console.log("Correction points:", {
       value: userData.correction_point,
       type: typeof userData.correction_point,
-      exists: userData.correction_point !== undefined
+      exists: userData.correction_point !== undefined,
     });
-    console.log('Wallet:', {
+    console.log("Wallet:", {
       value: userData.wallet,
       type: typeof userData.wallet,
-      exists: userData.wallet !== undefined
+      exists: userData.wallet !== undefined,
     });
-    console.log('Campus:', {
+    console.log("Campus:", {
       value: userData.campus,
       type: typeof userData.campus,
       exists: userData.campus !== undefined,
-      all_campus_data: userData.all_campus_data
+      all_campus_data: userData.all_campus_data,
     });
-    console.log('Pool year:', {
+    console.log("Pool year:", {
       value: userData.pool_year,
       type: typeof userData.pool_year,
-      exists: userData.pool_year !== undefined
+      exists: userData.pool_year !== undefined,
     });
-    console.log('All cursus data:', userData.all_cursus_data);
-    console.log('Raw debug keys:', userData._debug_raw_keys);
-    console.log('=== END NAVBAR DATA ANALYSIS ===');
+    console.log("All cursus data:", userData.all_cursus_data);
+    console.log("Raw debug keys:", userData._debug_raw_keys);
+    console.log("=== END NAVBAR DATA ANALYSIS ===");
   }
 
   const handleLogout = () => {
@@ -71,7 +80,7 @@ export function Navbar() {
               1337 Leaderboard
             </h1>
             <p className="text-xs text-muted-foreground">
-              {userData?.campus?.name || 'Campus 21'}
+              {userData?.campus?.name || "Campus 21"}
             </p>
           </div>
         </div>
@@ -92,32 +101,43 @@ export function Navbar() {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={userData.image?.versions?.small || userData.image?.link}
+                      src={
+                        userData.image?.versions?.small || userData.image?.link
+                      }
                       alt={userData.displayname || userData.login}
                     />
                     <AvatarFallback>
                       {userData.first_name?.[0] || userData.login?.[0]}
-                      {userData.last_name?.[0] || ''}
+                      {userData.last_name?.[0] || ""}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto" align="end" forceMount>
+              <DropdownMenuContent
+                className="w-80 max-h-96 overflow-y-auto"
+                align="end"
+                forceMount
+              >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex items-center justify-start gap-3 p-1">
                     <Avatar className="h-12 w-12">
                       <AvatarImage
-                        src={userData.image?.versions?.medium || userData.image?.link}
+                        src={
+                          userData.image?.versions?.medium ||
+                          userData.image?.link
+                        }
                         alt={userData.displayname || userData.login}
                       />
                       <AvatarFallback className="text-lg">
                         {userData.first_name?.[0] || userData.login?.[0]}
-                        {userData.last_name?.[0] || ''}
+                        {userData.last_name?.[0] || ""}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col space-y-1">
                       <p className="font-semibold text-base">
-                        {userData.usual_full_name || userData.displayname || userData.login}
+                        {userData.usual_full_name ||
+                          userData.displayname ||
+                          userData.login}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         @{userData.login}
@@ -128,42 +148,29 @@ export function Navbar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                
+
                 <DropdownMenuSeparator />
-                
-                {/* Debug section - show all available data */}
-                <div className="p-2 space-y-2 bg-muted/50">
-                  <p className="text-xs font-medium text-muted-foreground">DEBUG - Available Data:</p>
-                  <div className="text-xs space-y-1">
-                    <div>correction_point: {JSON.stringify(userData.correction_point)}</div>
-                    <div>wallet: {JSON.stringify(userData.wallet)}</div>
-                    <div>pool_year: {JSON.stringify(userData.pool_year)}</div>
-                    <div>pool_month: {JSON.stringify(userData.pool_month)}</div>
-                    <div>campus: {JSON.stringify(userData.campus)}</div>
-                    <div>all_campus_data: {JSON.stringify(userData.all_campus_data)}</div>
-                    <div>level: {JSON.stringify(userData.level)}</div>
-                    <div>grade: {JSON.stringify(userData.grade)}</div>
-                    <div>kind: {JSON.stringify(userData.kind)}</div>
-                    <div>staff: {JSON.stringify(userData.staff)}</div>
-                    <div>location: {JSON.stringify(userData.location)}</div>
-                  </div>
-                </div>
-                
+
                 <DropdownMenuSeparator />
-                
+
                 {/* User Stats */}
                 <div className="p-2 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center gap-2 text-sm">
                       <GraduationCap className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Level {userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || '0.00')}</span>
+                      <span className="font-medium">
+                        Level{" "}
+                        {userData.level?.toFixed
+                          ? userData.level.toFixed(2)
+                          : userData.level || "0.00"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Star className="h-4 w-4 text-yellow-500" />
                       <span>{userData.correction_point || 0} CP</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Wallet className="h-4 w-4 text-green-500" />
@@ -176,42 +183,17 @@ export function Navbar() {
                       </div>
                     )}
                   </div>
-                  
+
                   {userData.campus && (
                     <div className="flex items-center gap-2 text-sm">
                       <Trophy className="h-4 w-4 text-orange-500" />
-                      <span>{userData.campus.name || 'Unknown Campus'}</span>
-                    </div>
-                  )}
-                  
-                  {userData.grade && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Grade:</span>
-                      <Badge variant="secondary">{userData.grade}</Badge>
-                    </div>
-                  )}
-                  
-                  {(userData.pool_month && userData.pool_year) && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Pool:</span>
-                      <Badge variant="outline">
-                        {new Date(0, userData.pool_month - 1).toLocaleString('default', { month: 'short' })} {userData.pool_year}
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {userData.kind && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Type:</span>
-                      <Badge variant={userData.staff ? "destructive" : "default"}>
-                        {userData.kind}
-                      </Badge>
+                      <span>{userData.campus.name || "Unknown Campus"}</span>
                     </div>
                   )}
                 </div>
-                
+
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuItem
                   className="flex items-center gap-2 text-red-600 focus:text-red-600"
                   onClick={handleLogout}

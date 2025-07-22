@@ -111,6 +111,8 @@ export default async function handler(req, res) {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
         "User-Agent": "LeaderboardApp/1.0",
+        "X-Request-Name": "Leaderboard-Data-Fetch",
+        "X-API-Purpose": "42-Cursus-Leaderboard",
       },
     });
 
@@ -123,25 +125,7 @@ export default async function handler(req, res) {
 
     const leaderboardData = await leaderboardResponse.json();
 
-    // Step 3: Return safe, processed data
-    const safeData = leaderboardData.map((user, index) => ({
-      id: user.id,
-      rank: (parseInt(page) - 1) * parseInt(per_page) + index + 1,
-      login: user.user?.login || "unknown",
-      level: user.level || 0,
-      grade: user.grade || null,
-      campus: user.user?.campus?.[0]?.name || "Unknown Campus",
-      image: user.user?.image?.versions?.small || user.user?.image?.link,
-      correction_point: user.user.correction_point,
-      pool_month: user.user.pool_month,
-      pool_year: user.user.pool_year,
-      wallet: user.user.wallet,
-      grade: user.grade,
-      begin_at: user.begin_at,
-      end_at: user.end_at,
-    }));
-
-    // const safeData = Array.isArray(leaderboardData) ? leaderboardData : [leaderboardData];
+    const safeData = Array.isArray(leaderboardData) ? leaderboardData : [leaderboardData];
 
     console.log("Leaderboard data fetched:", {
       campus_id,
