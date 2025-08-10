@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
-import { cachedApi, leaderboardCache } from "@/lib/cached-api";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,18 +68,26 @@ export function RealLeaderboard() {
     setError(null);
     
     try {
-      // Use cached API for better performance
-      const apiResponse = await cachedApi.getLeaderboardData({
-        campus_id: campusId,
-        page: page,
-        per_page: USERS_PER_PAGE,
-        cursus_id: 21, // 42cursus
-        filters: {
-          active_only: true,
-          sort_by: "level",
-          sort_order: "desc"
+      // Use our backend API instead of direct 42 API calls
+      const params = new URLSearchParams({
+        campus_id: campusId.toString(),
+        page: page.toString(),
+        per_page: USERS_PER_PAGE.toString(),
+        cursus_id: '21', // 42cursus
+      });
+      
+      const response = await fetch(`/api/leaderboard-data?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
         }
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch leaderboard: ${response.status}`);
+      }
+      
+      const apiResponse = await response.json();
       
       if (!apiResponse.success || !apiResponse.data) {
         throw new Error('Invalid response format');
@@ -92,31 +99,27 @@ export function RealLeaderboard() {
       setHasMore(cursusUsers.length === USERS_PER_PAGE);
       
       // Transform the backend data to match our frontend format
-      const transformedStudents = cursusUsers.map((item, index) => {
-        const userData = item.user || item; // Handle different response formats
-        
-        return {
-          id: userData.id,
-          rank: ((page - 1) * USERS_PER_PAGE) + index + 1,
-          name: userData.login, // Backend provides safe data
-          login: userData.login,
-          level: item.level?.toFixed ? item.level.toFixed(2) : (item.level || "0.00"),
-          grade: item.grade || "Student",
-          correctionPoints: 0, // Not provided by backend for privacy
-          wallet: 0, // Not provided by backend for privacy
-          location: "Hidden", // Backend doesn't expose location for privacy
-          avatar: userData.image?.versions?.medium || userData.image,
-          campus: userData.campus || selectedCampus.name,
-          poolMonth: null, // Not provided by backend for privacy
-          poolYear: null, // Not provided by backend for privacy
-          isActive: true, // Default to active
-          skills: [], // Not provided by backend for privacy
-          blackholedAt: null, // Not provided by backend for privacy
-          cursusId: 21,
-          beginAt: null, // Not provided by backend for privacy
-          endAt: null, // Not provided by backend for privacy
-        };
-      });
+      const transformedStudents = cursusUsers.map((userData, index) => ({
+        id: userData.id,
+        rank: userData.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
+        name: userData.login, // Backend provides safe data
+        login: userData.login,
+        level: userData.level?.toFixed ? userData.level.toFixed(2) : (userData.level || "0.00"),
+        grade: userData.grade || "Student",
+        correctionPoints: 0, // Not provided by backend for privacy
+        wallet: 0, // Not provided by backend for privacy
+        location: "Hidden", // Backend doesn't expose location for privacy
+        avatar: userData.image,
+        campus: userData.campus || selectedCampus.name,
+        poolMonth: null, // Not provided by backend for privacy
+        poolYear: null, // Not provided by backend for privacy
+        isActive: true, // Default to active
+        skills: [], // Not provided by backend for privacy
+        blackholedAt: null, // Not provided by backend for privacy
+        cursusId: 21,
+        beginAt: null, // Not provided by backend for privacy
+        endAt: null, // Not provided by backend for privacy
+      }));
 
       // Update students list
       if (append) {
@@ -167,14 +170,7 @@ export function RealLeaderboard() {
     setNextPage(2);
     setHasMore(true);
     setCookie('selectedCampusId', campusId); // Save to cookies
-    // Invalidate cache when campus changes
-    leaderboardCache.invalidateCampus(campus.id);
   };
-
-  // Preload cache on component mount
-  useEffect(() => {
-    leaderboardCache.preloadCommonData().catch(console.warn);
-  }, []);
 
   if (loading) {
     return (
