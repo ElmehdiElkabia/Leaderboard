@@ -126,14 +126,7 @@ export function ClickableAvatarNotification() {
 }
 
 export function AvatarHelpTooltip() {
-  return (
-    <div className="flex items-center gap-2">
-      <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-        <MousePointer className="h-3 w-3" />
-        Click avatars for profiles
-      </Badge>
-    </div>
-  );
+  return null;
 }
 
 export default ClickableAvatarNotification;
