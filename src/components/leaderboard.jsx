@@ -44,7 +44,10 @@ export function Leaderboard({
   studentType: parentStudentType,
   onStudentTypeChange: onParentStudentTypeChange,
   poolMonth: parentPoolMonth,
-  onPoolMonthChange: onParentPoolMonthChange
+  onPoolMonthChange: onParentPoolMonthChange,
+  searchQuery: parentSearchQuery,
+  onSearchChange: onParentSearchChange,
+  isSearching: parentIsSearching
 }) {
   // Get user data to determine default student type
   const userData = auth.getUserData();
@@ -79,13 +82,18 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
-  const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
 
-  // Debounce search query for better performance
+  // Use parent search if provided, otherwise use local search
+  const searchQuery = parentSearchQuery !== undefined ? parentSearchQuery : useState("")[0];
+  const setSearchQuery = onParentSearchChange || useState("")[1];
+
+  // Debounce search query for better performance (only if using local search)
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const isSearching = searchQuery !== debouncedSearchQuery;
+  const isSearching = parentIsSearching !== undefined ? 
+    parentIsSearching : // Use parent searching state if provided
+    searchQuery !== debouncedSearchQuery; // Local search logic
   const searchInputRef = useRef(null);
 
   // Keyboard shortcut for search (Ctrl+K or Cmd+K)
@@ -160,8 +168,14 @@ export function Leaderboard({
     return filtered;
   }, [students, appliedFilters]);
 
-  // Apply real-time search on top of other filters
+  // Apply real-time search on top of other filters (only if not using parent search)
   const searchFilteredStudents = useMemo(() => {
+    // If parent search is provided, skip local filtering (API handles it)
+    if (parentSearchQuery !== undefined) {
+      return filteredStudents;
+    }
+
+    // Local search logic for when no parent search
     if (!debouncedSearchQuery || debouncedSearchQuery.trim() === "") {
       return filteredStudents;
     }
@@ -180,7 +194,7 @@ export function Leaderboard({
 
       return searchFields.some(field => field.includes(query));
     });
-  }, [filteredStudents, debouncedSearchQuery]);
+  }, [filteredStudents, debouncedSearchQuery, parentSearchQuery]);
 
   const handleApplyFilters = () => {
     const newFilters = {
