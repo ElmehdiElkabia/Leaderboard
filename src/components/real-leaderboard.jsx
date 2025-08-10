@@ -55,6 +55,7 @@ export function RealLeaderboard() {
   const [yearFilter, setYearFilter] = useState("2024-01-01,2025-01-01"); // Default to 2024
   const [studentType, setStudentType] = useState("21"); // Default to 42cursus
   const [poolMonth, setPoolMonth] = useState("all"); // Default to all months
+  const [genderFilter, setGenderFilter] = useState("all"); // Default to all genders
   const [stats, setStats] = useState({
     totalStudents: 0,
     averageLevel: 0,
@@ -269,6 +270,12 @@ export function RealLeaderboard() {
     setHasMore(true);
   };
 
+  const handleGenderFilterChange = (gender) => {
+    setGenderFilter(gender);
+    setNextPage(2);
+    setHasMore(true);
+  };
+
   if (loading) {
     // Show mock data with loading skeleton while fetching real data
     const loadingStudents = mockStudents.slice(0, 10).map((student, index) => ({
@@ -308,6 +315,8 @@ export function RealLeaderboard() {
               onStudentTypeChange={() => {}}
               poolMonth={poolMonth}
               onPoolMonthChange={() => {}}
+              genderFilter={genderFilter}
+              onGenderFilterChange={() => {}}
             />
           </div>
           <div className="fixed inset-0 bg-background/20 backdrop-blur-sm flex items-center justify-center z-50">
@@ -364,6 +373,8 @@ export function RealLeaderboard() {
           onStudentTypeChange={handleStudentTypeChange}
           poolMonth={poolMonth}
           onPoolMonthChange={handlePoolMonthChange}
+          genderFilter={genderFilter}
+          onGenderFilterChange={handleGenderFilterChange}
         />
       </div>
 

@@ -43,7 +43,9 @@ export function Leaderboard({
   studentType: parentStudentType,
   onStudentTypeChange: onParentStudentTypeChange,
   poolMonth: parentPoolMonth,
-  onPoolMonthChange: onParentPoolMonthChange
+  onPoolMonthChange: onParentPoolMonthChange,
+  genderFilter: parentGenderFilter,
+  onGenderFilterChange: onParentGenderFilterChange
 }) {
   // Get user data to determine default student type
   const userData = auth.getUserData();
@@ -70,6 +72,7 @@ export function Leaderboard({
     sort: "level",
     studentType: parentStudentType || getDefaultStudentType(),
     poolMonth: parentPoolMonth || "all",
+    gender: parentGenderFilter || "all",
   };
 
   const [levelFilter, setLevelFilter] = useState(savedFilters.level);
@@ -78,6 +81,7 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
+  const [genderFilter, setGenderFilter] = useState(parentGenderFilter || savedFilters.gender);
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
 
@@ -117,6 +121,21 @@ export function Leaderboard({
     // Apply year filter - Skip since API already filters by year
     // The real-leaderboard.jsx handles year filtering via API date ranges
 
+    // Apply gender filter
+    if (appliedFilters.gender && appliedFilters.gender !== "all") {
+      filtered = filtered.filter((student) => {
+        // Check if student has gender property and matches filter
+        if (student.gender) {
+          if (appliedFilters.gender === "male") {
+            return student.gender === "male" || student.gender === "m";
+          } else if (appliedFilters.gender === "female") {
+            return student.gender === "female" || student.gender === "f";
+          }
+        }
+        return true; // If no gender data, don't filter out
+      });
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       switch (appliedFilters.sort) {
@@ -144,6 +163,7 @@ export function Leaderboard({
       sort: sortBy,
       studentType: studentType,
       poolMonth: poolMonth,
+      gender: genderFilter,
     };
     setAppliedFilters(newFilters);
     setCookie("leaderboardFilters", newFilters);
@@ -226,6 +246,8 @@ export function Leaderboard({
             onStudentTypeChange={setStudentType}
             poolMonth={poolMonth}
             onPoolMonthChange={setPoolMonth}
+            genderFilter={genderFilter}
+            onGenderFilterChange={setGenderFilter}
             totalStudents={students.length}
             filteredStudents={filteredStudents.length}
             selectedCampus={selectedCampus}
