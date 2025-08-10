@@ -55,7 +55,6 @@ export function RealLeaderboard() {
     activeStudents: 0
   });
   const leaderboardRef = useRef(null);
-  const loadMoreButtonRef = useRef(null);
 
   const fetchLeaderboardData = async (campusId, page = 1, append = false) => {
     if (page === 1) {
@@ -151,16 +150,6 @@ export function RealLeaderboard() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
-      
-      // Scroll to show new students after loading more
-      if (append && loadMoreButtonRef.current) {
-        setTimeout(() => {
-          loadMoreButtonRef.current?.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-        }, 100);
-      }
     }
   };
 
@@ -310,7 +299,7 @@ export function RealLeaderboard() {
 
       {/* Load More Button */}
       {hasMore && students.length > 0 && (
-        <div className="flex justify-center" ref={loadMoreButtonRef}>
+        <div className="flex justify-center">
           <Button
             onClick={loadMoreStudents}
             disabled={loadingMore}

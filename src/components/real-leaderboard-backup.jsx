@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { auth }     try {
-      // Fetch campus users for the selected campus with pagination
-      const response = await auth.apiRequest(
-        `https://api.intra.42.fr/v2/campus/${campusId}/users?filter[pool_year]=2024&per_page=${USERS_PER_PAGE}&page=${page}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const campusUsers = await response.json();/auth";
+import { auth } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,7 +54,6 @@ export function RealLeaderboard() {
     activeStudents: 0
   });
   const leaderboardRef = useRef(null);
-  const loadMoreButtonRef = useRef(null);
 
   const fetchLeaderboardData = async (campusId, page = 1, append = false) => {
     if (page === 1) {
@@ -144,16 +133,6 @@ export function RealLeaderboard() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
-      
-      // Scroll to show new students after loading more
-      if (append && loadMoreButtonRef.current) {
-        setTimeout(() => {
-          loadMoreButtonRef.current?.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-        }, 100);
-      }
     }
   };
 
@@ -298,7 +277,7 @@ export function RealLeaderboard() {
       
       {/* Load More Button */}
       {hasMore && !loading && (
-        <div ref={loadMoreButtonRef} className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6">
           <Button 
             onClick={loadMoreStudents}
             disabled={loadingMore}
