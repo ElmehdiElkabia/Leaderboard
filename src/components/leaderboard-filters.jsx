@@ -1,24 +1,14 @@
 import { Filter, ArrowUpDown } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { MOROCCAN_CAMPUSES } from "@/lib/utils"
 
-const MOROCCAN_CAMPUSES_LOCAL = [
-  { id: 1, name: "Khouribga", city: "khouribga" },
-  { id: 2, name: "Casablanca", city: "casablanca" },
-  { id: 3, name: "Rabat", city: "rabat" },
-  { id: 4, name: "Tanger", city: "tanger" },
-  { id: 5, name: "Oujda", city: "oujda" },
+const MOROCCAN_CAMPUSES = [
+  { id: 21, name: "Benguerir" },
+  { id: 75, name: "Rabat" },
+  { id: 55, name: "Tétouan" },
+  { id: 16, name: "Khouribga" },
+
 ];
 
 const POOL_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
@@ -34,12 +24,6 @@ const POOL_MONTHS = [
   { id: 7, name: "July", value: "7" },
   { id: 8, name: "August", value: "8" },
   { id: 9, name: "September", value: "9" },
-];
-
-const GENDER_OPTIONS = [
-  { id: "all", name: "All Genders" },
-  { id: "male", name: "Male" },
-  { id: "female", name: "Female" },
 ];
 
 const BEGIN_AT = [
@@ -70,158 +54,109 @@ export function LeaderboardFilters({
   studentType,
   onStudentTypeChange,
   poolMonth,
-  onPoolMonthChange,
-  genderFilter,
-  onGenderFilterChange,
+  onPoolMonthChange
 }) {
   return (
-    <Card className="mb-6">
-      <CardContent className="p-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          {/* Campus Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Campus</label>
-            <Select
-              value={campusFilter || "all"}
-              onValueChange={onCampusFilterChange}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Select campus" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Campuses</SelectItem>
-                {MOROCCAN_CAMPUSES_LOCAL.map((campus) => (
-                  <SelectItem key={campus.id} value={campus.city}>
-                    {campus.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <Card className="border-border bg-card/50 backdrop-blur-sm">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              {/* Student Type Selector */}
+              <Select value={studentType} onValueChange={onStudentTypeChange}>
+                <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  {STUDENT_TYPES.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Pool Month Selector - Show only for Piscine */}
+              {studentType === "9" && (
+                <Select value={poolMonth} onValueChange={onPoolMonthChange}>
+                  <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-popover">
+                    <SelectItem value="all">All Months</SelectItem>
+                    {POOL_MONTHS.map((month) => (
+                      <SelectItem key={month.id} value={month.value}>
+                        {month.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {/* Campus Selector */}
+              <Select value={tempCampusFilter || selectedCampus?.id.toString()} onValueChange={onTempCampusFilterChange}>
+                <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Campus" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  {MOROCCAN_CAMPUSES.map((campus) => (
+                    <SelectItem key={campus.id} value={campus.id.toString()}>
+                      {campus.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+      
+
+              <Select value={yearFilter} onValueChange={onYearFilterChange}>
+                <SelectTrigger className="w-full sm:w-[120px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  <SelectItem value="all">All Years</SelectItem>
+                  {BEGIN_AT.map((item) => (
+                    <SelectItem key={item.id} value={item.value}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={onSortChange}>
+                <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  <SelectItem value="level">Level</SelectItem>
+                  <SelectItem value="correctionPoints">Correction Points</SelectItem>
+                  <SelectItem value="wallet">Wallet</SelectItem>
+                  <SelectItem value="login">Login</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center">
+              <Button 
+                onClick={onApplyFilters}
+                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Apply Filters
+              </Button>
+            </div>
           </div>
 
-          {/* Level Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Level</label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-32">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Level {levelFilter || "All"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onLevelFilterChange(null)}>
-                  All Levels
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {[...Array(21)].map((_, i) => (
-                  <DropdownMenuItem
-                    key={i}
-                    onClick={() => onLevelFilterChange(i)}
-                  >
-                    Level {i}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Student Type Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Type</label>
-            <Select
-              value={studentType?.toString() || "all"}
-              onValueChange={(value) => onStudentTypeChange(value === "all" ? null : parseInt(value))}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {STUDENT_TYPES.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Pool Month Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Pool Month</label>
-            <Select
-              value={poolMonth?.toString() || "all"}
-              onValueChange={(value) => onPoolMonthChange(value === "all" ? null : parseInt(value))}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Months</SelectItem>
-                {POOL_MONTHS.map((month) => (
-                  <SelectItem key={month.id} value={month.id.toString()}>
-                    {month.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Gender Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Gender</label>
-            <Select
-              value={genderFilter || "all"}
-              onValueChange={onGenderFilterChange}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                {GENDER_OPTIONS.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort Options */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Sort By</label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-32">
-                  <ArrowUpDown className="mr-2 h-4 w-4" />
-                  {sortBy === "level" ? "Level" : 
-                   sortBy === "correction_point" ? "Points" : 
-                   sortBy === "wallet" ? "Wallet" : "Level"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onSortChange("level")}>
-                  By Level
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSortChange("correction_point")}>
-                  By Correction Points
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSortChange("wallet")}>
-                  By Wallet
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Results Counter */}
-          <div className="ml-auto">
-            <Badge variant="secondary">
-              {filteredStudents?.length || 0} of {totalStudents || 0} students
-            </Badge>
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredStudents} of {totalStudents} students across all campuses
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
