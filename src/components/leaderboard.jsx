@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { TopThree } from "./top-three";
 import { LeaderboardFilters } from "./leaderboard-filters";
@@ -7,6 +7,7 @@ import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 // Cookie helpers
 const setCookie = (name, value, days = 30) => {
@@ -78,8 +79,31 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
+  const [searchQuery, setSearchQuery] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
+
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const isSearching = searchQuery !== debouncedSearchQuery;
+  const searchInputRef = useRef(null);
+
+  // Keyboard shortcut for search (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // Escape to clear search
+      if (event.key === 'Escape' && searchQuery) {
+        setSearchQuery('');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery]);
 
   // Filter students based on applied filters
   const filteredStudents = useMemo(() => {
@@ -135,6 +159,28 @@ export function Leaderboard({
 
     return filtered;
   }, [students, appliedFilters]);
+
+  // Apply real-time search on top of other filters
+  const searchFilteredStudents = useMemo(() => {
+    if (!debouncedSearchQuery || debouncedSearchQuery.trim() === "") {
+      return filteredStudents;
+    }
+
+    const query = debouncedSearchQuery.toLowerCase().trim();
+    return filteredStudents.filter((student) => {
+      // Search in multiple fields for better UX
+      const searchFields = [
+        student.displayName || "",
+        student.login || "",
+        student.email || "",
+        student.firstName || "",
+        student.lastName || "",
+        `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+      ].map(field => field.toLowerCase());
+
+      return searchFields.some(field => field.includes(query));
+    });
+  }, [filteredStudents, debouncedSearchQuery]);
 
   const handleApplyFilters = () => {
     const newFilters = {
@@ -226,8 +272,14 @@ export function Leaderboard({
             onStudentTypeChange={setStudentType}
             poolMonth={poolMonth}
             onPoolMonthChange={setPoolMonth}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchInputRef={searchInputRef}
+            isSearching={isSearching}
+            genderFilter={genderFilter}
+            onGenderFilterChange={setGenderFilter}
             totalStudents={students.length}
-            filteredStudents={filteredStudents.length}
+            filteredStudents={searchFilteredStudents.length}
             selectedCampus={selectedCampus}
             onApplyFilters={handleApplyFilters}
             tempCampusFilter={tempCampusFilter}
@@ -235,8 +287,8 @@ export function Leaderboard({
           />
 
           {/* Table */}
-          {filteredStudents.length > 0 ? (
-            <LeaderboardTable students={filteredStudents} startIndex={0} />
+          {searchFilteredStudents.length > 0 ? (
+            <LeaderboardTable students={searchFilteredStudents} startIndex={0} />
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -250,9 +302,14 @@ export function Leaderboard({
                     <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                       <Users className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {searchQuery ? `No results for "${searchQuery}"` : "No Students Found"}
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      No students match your current filter criteria for {selectedCampus?.name || 'this campus'}.
+                      {searchQuery 
+                        ? `No students match your search "${searchQuery}" in ${selectedCampus?.name || 'this campus'}.`
+                        : `No students match your current filter criteria for ${selectedCampus?.name || 'this campus'}.`
+                      }
                     </p>
                   </div>
                   
