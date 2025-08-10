@@ -59,9 +59,7 @@ export function LeaderboardFilters({
   searchQuery,
   onSearchChange,
   searchInputRef,
-  isSearching,
-  genderFilter,
-  onGenderFilterChange
+  isSearching
 }) {
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">

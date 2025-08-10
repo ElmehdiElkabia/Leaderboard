@@ -276,8 +276,6 @@ export function Leaderboard({
             onSearchChange={setSearchQuery}
             searchInputRef={searchInputRef}
             isSearching={isSearching}
-            genderFilter={genderFilter}
-            onGenderFilterChange={setGenderFilter}
             totalStudents={students.length}
             filteredStudents={searchFilteredStudents.length}
             selectedCampus={selectedCampus}
