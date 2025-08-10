@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
+import { cachedApi, leaderboardCache } from "@/lib/cached-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,10 +98,10 @@ export function RealLeaderboard() {
         dateRangeToUse = selectedDateRange;
       }
 
-      // Use our secure progress API with POST method
-      const requestPayload = {
-        campus_id: parseInt(campusId),
-        page: parseInt(page),
+      // Use cached API instead of direct fetch
+      const apiResponse = await cachedApi.getLeaderboardData({
+        campus_id: campusId,
+        page: page,
         per_page: USERS_PER_PAGE,
         cursus_id: parseInt(studentType),
         date_range: dateRangeToUse,
@@ -110,34 +111,7 @@ export function RealLeaderboard() {
           sort_by: "level",
           sort_order: "desc"
         }
-      };
-
-      // Remove undefined values
-      Object.keys(requestPayload).forEach(key => {
-        if (requestPayload[key] === undefined) {
-          delete requestPayload[key];
-        }
       });
-      
-      const apiUrl = `/api/progress`;
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Client-Purpose': 'Academic-Progress-Monitor',
-          'X-Platform': 'web-dashboard',
-        },
-        body: JSON.stringify(requestPayload)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch leaderboard: ${response.status}`);
-      }
-      
-      const apiResponse = await response.json();
-      
 
       if (!apiResponse.success || !apiResponse.data) {
         throw new Error('Invalid response format');
@@ -255,19 +229,30 @@ export function RealLeaderboard() {
     setYearFilter(dateRange);
     setNextPage(2);
     setHasMore(true);
+    // Invalidate cache for current campus when filters change
+    leaderboardCache.invalidateCampus(selectedCampus.id);
   };
 
   const handleStudentTypeChange = (type) => {
     setStudentType(type);
     setNextPage(2);
     setHasMore(true);
+    // Invalidate cache for current campus when filters change
+    leaderboardCache.invalidateCampus(selectedCampus.id);
   };
 
   const handlePoolMonthChange = (month) => {
     setPoolMonth(month);
     setNextPage(2);
     setHasMore(true);
+    // Invalidate cache for current campus when filters change
+    leaderboardCache.invalidateCampus(selectedCampus.id);
   };
+
+  // Preload cache on component mount
+  useEffect(() => {
+    leaderboardCache.preloadCommonData().catch(console.warn);
+  }, []);
 
   if (loading) {
     // Show mock data with loading skeleton while fetching real data
