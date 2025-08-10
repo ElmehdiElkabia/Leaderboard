@@ -17,9 +17,13 @@ export function UserInfoCard() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <div className="flex flex-col items-center space-y-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={userData.image?.versions?.medium} alt={userData.displayname} />
-            <AvatarFallback className="text-lg">
+          <Avatar className="h-28 w-28 border-4 border-primary/20 ring-4 ring-primary/10 shadow-2xl hover:scale-105 transition-transform duration-300">
+            <AvatarImage 
+              src={userData.image?.versions?.medium} 
+              alt={userData.displayname}
+              className="object-cover"
+            />
+            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/20 to-primary/40 text-primary">
               {userData.first_name?.[0]}{userData.last_name?.[0]}
             </AvatarFallback>
           </Avatar>

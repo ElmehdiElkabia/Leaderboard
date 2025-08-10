@@ -39,9 +39,15 @@ export function TopThree({ students }) {
             </div>
             <CardContent className="p-6 text-center relative">
               <Award className="h-8 w-8 text-silver mx-auto mb-4" />
-              <Avatar className="h-20 w-20 mx-auto mb-4 border-2 border-silver/30">
-                <AvatarImage src={second.avatar} alt={second.login} />
-                <AvatarFallback>{second.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-silver/40 ring-4 ring-silver/20 shadow-xl hover:scale-105 transition-transform duration-300">
+                <AvatarImage 
+                  src={second.avatar} 
+                  alt={second.login}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-silver/20 to-silver/40 text-silver font-bold text-xl">
+                  {second.login.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <h3 className="font-bold text-lg mb-2">{second.login}</h3>
               <div className="space-y-2">
@@ -78,9 +84,16 @@ export function TopThree({ students }) {
             </div>
             <CardContent className="p-6 text-center relative">
               <Crown className="h-10 w-10 text-gold mx-auto mb-4 animate-float" />
-              <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-gold/40 ring-2 ring-gold/20">
-                <AvatarImage src={first.avatar} alt={first.login} />
-                <AvatarFallback>{first.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <Avatar className="h-28 w-28 mx-auto mb-4 border-4 border-gold/50 ring-4 ring-gold/30 shadow-2xl hover:scale-110 transition-transform duration-500 relative">
+                <AvatarImage 
+                  src={first.avatar} 
+                  alt={first.login}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-gold/30 to-gold/50 text-gold font-bold text-2xl">
+                  {first.login.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+                <div className="absolute inset-0 rounded-full bg-gold/10 animate-pulse" />
               </Avatar>
               <h3 className="font-bold text-xl mb-2 text-gold">{first.login}</h3>
               <div className="space-y-2">
@@ -117,9 +130,15 @@ export function TopThree({ students }) {
             </div>
             <CardContent className="p-6 text-center relative">
               <Medal className="h-8 w-8 text-bronze mx-auto mb-4" />
-              <Avatar className="h-20 w-20 mx-auto mb-4 border-2 border-bronze/30">
-                <AvatarImage src={third.avatar} alt={third.login} />
-                <AvatarFallback>{third.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <Avatar className="h-24 w-24 mx-auto mb-4 border-4 border-bronze/40 ring-4 ring-bronze/20 shadow-xl hover:scale-105 transition-transform duration-300">
+                <AvatarImage 
+                  src={third.avatar} 
+                  alt={third.login}
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-bronze/20 to-bronze/40 text-bronze font-bold text-xl">
+                  {third.login.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <h3 className="font-bold text-lg mb-2">{third.login}</h3>
               <div className="space-y-2">
