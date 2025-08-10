@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { TopThree } from "./top-three";
 import { LeaderboardFilters } from "./leaderboard-filters";
 import { LeaderboardTable } from "./leaderboard-table";
+import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
@@ -275,6 +276,9 @@ export function Leaderboard({
           )}
         </motion.div>
       </div>
+      
+      {/* Help Overlay */}
+      <TableHelpOverlay />
     </div>
   );
 }

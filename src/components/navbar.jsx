@@ -9,6 +9,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { ClickableAvatarNotification, AvatarHelpTooltip } from "./avatar-notification";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,7 +61,9 @@ export function Navbar() {
             <Trophy className="h-4 w-4" />
             <span>Live Rankings</span>
           </div>
+          <AvatarHelpTooltip />
           <ThemeToggle />
+          <ClickableAvatarNotification />
 
           {isAuthenticated && userData && (
             <DropdownMenu>

@@ -67,19 +67,27 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-4">
-                        <Avatar 
-                          className="h-14 w-14 border-2 border-border/50 ring-2 ring-background shadow-md hover:ring-primary/30 transition-all duration-200 cursor-pointer hover:scale-105"
-                          onClick={() => handleAvatarClick(student)}
-                        >
-                          <AvatarImage 
-                            src={student.avatar} 
-                            alt={student.login}
-                            className="object-cover hover:scale-105 transition-transform duration-200"
-                          />
-                          <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/20 text-primary font-semibold text-lg">
-                            {student.login.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar 
+                            className="h-14 w-14 border-2 border-border/50 ring-2 ring-background shadow-md hover:ring-primary/30 transition-all duration-200 cursor-pointer hover:scale-105"
+                            onClick={() => handleAvatarClick(student)}
+                          >
+                            <AvatarImage 
+                              src={student.avatar} 
+                              alt={student.login}
+                              className="object-cover hover:scale-105 transition-transform duration-200"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/20 text-primary font-semibold text-lg">
+                              {student.login.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {/* Subtle click indicator for first few avatars */}
+                          {index < 3 && (
+                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary/20 rounded-full flex items-center justify-center">
+                              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+                            </div>
+                          )}
+                        </div>
                         <div className="flex flex-col">
                           <button
                             onClick={() => window.open(`https://profile.intra.42.fr/users/${student.login}`, '_blank')}
@@ -87,9 +95,6 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                           >
                             {student.login}
                           </button>
-                          <span className="text-sm text-muted-foreground">
-                            Level {student.level}
-                          </span>
                         </div>
                       </div>
                     </TableCell>
