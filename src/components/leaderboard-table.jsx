@@ -81,12 +81,6 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                               {student.login.slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          {/* Subtle click indicator for first few avatars */}
-                          {index < 3 && (
-                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary/20 rounded-full flex items-center justify-center">
-                              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                            </div>
-                          )}
                         </div>
                         <div className="flex flex-col">
                           <button
