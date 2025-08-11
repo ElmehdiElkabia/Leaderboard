@@ -4,7 +4,6 @@ import { TopThree } from "./top-three";
 import { LeaderboardFilters } from "./leaderboard-filters";
 import { LeaderboardTable } from "./leaderboard-table";
 import { TableHelpOverlay } from "./table-help-overlay";
-import { NamimaAITips } from "./namima-ai-tips";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
@@ -211,11 +210,6 @@ export function Leaderboard({
             <p className="text-muted-foreground">
               Full leaderboard for all 1337 Moroccan campuses
             </p>
-          </div>
-
-          {/* Namima AI Tips */}
-          <div className="max-w-2xl mx-auto">
-            <NamimaAITips />
           </div>
 
           {/* Filters */}
