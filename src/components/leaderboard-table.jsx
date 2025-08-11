@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { StudentProfileModal } from "@/components/student-profile-modal"
+import { MousePointer } from "lucide-react"
 
 // Remove TypeScript types
 
@@ -40,7 +42,19 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="w-16 text-center">Rank</TableHead>
-                <TableHead>Student</TableHead>
+                <TableHead>
+                  <div className="flex items-center gap-2">
+                    Student
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <MousePointer className="h-4 w-4 text-blue-400 hover:text-blue-300 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm">Click on student avatars to view detailed profiles!</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TableHead>
                 <TableHead className="text-center">Campus</TableHead>
                 <TableHead className="text-center">Level</TableHead>
                 <TableHead className="text-center">Correction Points</TableHead>
@@ -68,19 +82,26 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                     <TableCell>
                       <div className="flex items-center space-x-4">
                         <div className="relative">
-                          <Avatar 
-                            className="h-14 w-14 border-2 border-border/50 ring-2 ring-background shadow-md hover:ring-primary/30 transition-all duration-200 cursor-pointer hover:scale-105"
-                            onClick={() => handleAvatarClick(student)}
-                          >
-                            <AvatarImage 
-                              src={student.avatar} 
-                              alt={student.login}
-                              className="object-cover hover:scale-105 transition-transform duration-200"
-                            />
-                            <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/20 text-primary font-semibold text-lg">
-                              {student.login.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Avatar 
+                                className="h-14 w-14 border-2 border-border/50 ring-2 ring-background shadow-md hover:ring-primary/30 transition-all duration-200 cursor-pointer hover:scale-105"
+                                onClick={() => handleAvatarClick(student)}
+                              >
+                                <AvatarImage 
+                                  src={student.avatar} 
+                                  alt={student.login}
+                                  className="object-cover hover:scale-105 transition-transform duration-200"
+                                />
+                                <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/20 text-primary font-semibold text-lg">
+                                  {student.login.slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-sm">Click to view {student.first_name}'s profile details</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                         <div className="flex flex-col">
                           <button

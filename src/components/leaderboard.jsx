@@ -6,7 +6,8 @@ import { LeaderboardTable } from "./leaderboard-table";
 import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Users, Filter } from "lucide-react";
+import { Search, Users, Filter, Lightbulb, TrendingUp, Award, MousePointer } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Cookie helpers
 const setCookie = (name, value, days = 30) => {
@@ -195,6 +196,36 @@ export function Leaderboard({
     <div className="min-h-screen bg-background">
       {/* Top Three Section */}
       <TopThree students={students} />
+
+      {/* Interactive Tips */}
+      <div className="container mx-auto px-4 pt-6 pb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <Alert className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+            <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="text-blue-800 dark:text-blue-200">
+              <span className="font-medium">💡 Pro Tips:</span>
+              <div className="mt-1 space-y-1 text-sm">
+                <div className="flex items-center gap-2">
+                  <MousePointer className="h-3 w-3" />
+                  <span>Click on student avatars to view detailed profiles</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>Use filters to compare students from different campuses or levels</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award className="h-3 w-3" />
+                  <span>Correction points show peer evaluation activity</span>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      </div>
 
       {/* Main Leaderboard Section */}
       <div className="container mx-auto px-4 pb-12">

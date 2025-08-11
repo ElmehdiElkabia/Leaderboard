@@ -235,6 +235,15 @@ export function StudentProfileModal({ student, trigger, isOpen, onOpenChange }) 
             </CardContent>
           </Card>
         </div>
+        
+        {/* Tip Section */}
+        <div className="mt-6 p-3 bg-muted/30 rounded-lg border border-border/50">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ExternalLink className="h-4 w-4" />
+            <span>Click "View 42 Profile" to see more detailed information on the official 42 platform</span>
+          </div>
+        </div>
+        
       </DialogContent>
     </Dialog>
   );

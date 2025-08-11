@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { Crown, Award, Medal } from "lucide-react"
+import { Crown, Award, Medal, MousePointer } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -19,7 +19,11 @@ export function TopThree({ students }) {
         className="text-center mb-8"
       >
         <h2 className="text-3xl font-bold mb-2">Top Performers</h2>
-        <p className="text-muted-foreground">The elite of Campus 21</p>
+        <p className="text-muted-foreground mb-3">The elite of Campus 21</p>
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground/70">
+          <MousePointer className="h-4 w-4" />
+          <span>Click on any avatar to view detailed profiles</span>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
