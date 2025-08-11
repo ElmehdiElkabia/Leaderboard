@@ -8,7 +8,7 @@ import { StudentProfileModal } from "@/components/student-profile-modal"
 
 // Remove TypeScript types
 
-export function LeaderboardTable({ students, startIndex = 0 }) {
+export function LeaderboardTable({ students, startIndex = 0, genderPredictions = {} }) {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -46,11 +46,15 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                 <TableHead className="text-center">Correction Points</TableHead>
                 <TableHead className="text-center">Wallet</TableHead>
                 <TableHead className="text-center">Year</TableHead>
+                <TableHead className="text-center">Gender</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {students.map((student, index) => {
-                const rank = startIndex + index + 1
+                const rank = startIndex + index + 1;
+                const userId = student.id || student.user?.id;
+                const genderPrediction = genderPredictions[userId];
+                
                 return (
                   <TableRow
                     key={student.id}
@@ -112,6 +116,29 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
                       <span className="text-sm text-muted-foreground">
                         {student.poolYear || 'N/A'}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {genderPrediction ? (
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            genderPrediction.predicted_gender === 'male' 
+                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              : genderPrediction.predicted_gender === 'female'
+                              ? 'bg-pink-50 text-pink-700 border-pink-200'
+                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}
+                          title={`${genderPrediction.confidence}% confidence - ${genderPrediction.reasoning}`}
+                        >
+                          {genderPrediction.predicted_gender === 'male' ? 'M' : 
+                           genderPrediction.predicted_gender === 'female' ? 'F' : '?'}
+                          <span className="ml-1 text-xs opacity-70">
+                            {genderPrediction.confidence}%
+                          </span>
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">...</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 )
