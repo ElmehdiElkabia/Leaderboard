@@ -110,35 +110,63 @@ export default async function handler(req, res) {
     // Check if any users have gender information in their data
     const usersWithGenderInfo = usersData.filter(user => user.gender || user.sex);
     
-    // AI Gender Detection
-    console.log('Starting AI gender analysis...');
-    const usersWithAIGender = await Promise.all(
-      usersData.map(async (user) => {
-        const aiGenderResult = await analyzeGenderWithAI(user);
-        return {
-          ...user,
-          ai_gender_prediction: aiGenderResult
-        };
-      })
-    );
+    // AI Gender Detection with rate limiting
+    console.log('Starting AI gender analysis with rate limiting...');
+    const usersWithAIGender = [];
+    
+    // Process users in smaller batches to avoid rate limits
+    const batchSize = 5; // Process 5 users at a time
+    const delay = 1000; // 1 second delay between batches
+    
+    for (let i = 0; i < Math.min(usersData.length, 20); i += batchSize) { // Limit to first 20 users for testing
+      const batch = usersData.slice(i, i + batchSize);
+      
+      console.log(`Processing batch ${Math.floor(i/batchSize) + 1}, users ${i + 1}-${Math.min(i + batchSize, usersData.length)}`);
+      
+      const batchResults = await Promise.all(
+        batch.map(async (user) => {
+          const aiGenderResult = await analyzeGenderWithAI(user);
+          return {
+            ...user,
+            ai_gender_prediction: aiGenderResult
+          };
+        })
+      );
+      
+      usersWithAIGender.push(...batchResults);
+      
+      // Add delay between batches to respect rate limits
+      if (i + batchSize < Math.min(usersData.length, 20)) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    // For remaining users (if any), use local gender detection
+    const remainingUsers = usersData.slice(usersWithAIGender.length).map(user => ({
+      ...user,
+      ai_gender_prediction: analyzeGenderLocally(user)
+    }));
+    
+    const allUsersWithGender = [...usersWithAIGender, ...remainingUsers];
     
     // Filter for predicted male users
-    const predictedMaleUsers = usersWithAIGender.filter(
+    const predictedMaleUsers = allUsersWithGender.filter(
       user => user.ai_gender_prediction?.predicted_gender === 'male'
     );
     
-    console.log(`AI predicted ${predictedMaleUsers.length} male users out of ${usersData.length} total users`);
+    console.log(`AI predicted ${predictedMaleUsers.length} male users out of ${allUsersWithGender.length} analyzed users`);
     
     // Return the data with analysis of available fields
     return res.json({
       success: true,
-      message: 'Successfully fetched users with AI gender analysis',
+      message: 'Successfully fetched users with AI gender analysis (rate-limited)',
       note: 'Available filters are: id, login, email, created_at, updated_at, pool_year, pool_month, kind, status, primary_campus_id, first_name, last_name, alumni?, staff?',
       count: usersData.length,
+      analyzed_count: allUsersWithGender.length,
       users_with_gender_info: usersWithGenderInfo.length,
       ai_predicted_male_users: predictedMaleUsers.length,
-      filter_used: 'filter[kind]=student + AI gender detection',
-      users: usersWithAIGender.map(user => ({
+      filter_used: 'filter[kind]=student + AI gender detection (batch processed)',
+      users: allUsersWithGender.map(user => ({
         id: user.id,
         login: user.login,
         email: user.email,
@@ -185,9 +213,15 @@ export default async function handler(req, res) {
   }
 }
 
-// AI Gender Detection Function
+// AI Gender Detection Function with improved error handling
 async function analyzeGenderWithAI(user) {
   try {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('No OpenAI API key found, using local analysis');
+      return analyzeGenderLocally(user);
+    }
+
     // Prepare data for AI analysis
     const analysisData = {
       first_name: user.first_name,
@@ -222,7 +256,7 @@ Please respond with a JSON object in this exact format:
 
 Focus primarily on the first name for gender prediction, but consider cultural context from location data if available.`;
 
-    // Use OpenAI API (you can also use other AI services like Anthropic, Groq, etc.)
+    // Use OpenAI API with retry logic
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -230,7 +264,7 @@ Focus primarily on the first name for gender prediction, but consider cultural c
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo', // or 'gpt-4' for better accuracy
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -242,37 +276,25 @@ Focus primarily on the first name for gender prediction, but consider cultural c
           }
         ],
         max_tokens: 300,
-        temperature: 0.3 // Lower temperature for more consistent predictions
+        temperature: 0.3
       })
     });
 
     if (!aiResponse.ok) {
-      console.error('AI API failed:', aiResponse.status);
-      return {
-        predicted_gender: 'unknown',
-        confidence: 0,
-        reasoning: 'AI API request failed',
-        primary_indicators: [],
-        error: `AI API error: ${aiResponse.status}`
-      };
+      console.warn(`AI API failed for user ${user.login}: ${aiResponse.status}`);
+      // Fallback to local analysis
+      return analyzeGenderLocally(user);
     }
 
     const aiData = await aiResponse.json();
     const aiContent = aiData.choices?.[0]?.message?.content;
 
     if (!aiContent) {
-      return {
-        predicted_gender: 'unknown',
-        confidence: 0,
-        reasoning: 'No AI response received',
-        primary_indicators: [],
-        error: 'Empty AI response'
-      };
+      return analyzeGenderLocally(user);
     }
 
     // Parse the AI response
     try {
-      // Extract JSON from the response (in case there's extra text)
       const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsedResult = JSON.parse(jsonMatch[0]);
@@ -281,31 +303,109 @@ Focus primarily on the first name for gender prediction, but consider cultural c
           confidence: parsedResult.confidence,
           reasoning: parsedResult.reasoning,
           primary_indicators: parsedResult.primary_indicators || [],
+          method: 'openai_api',
           raw_ai_response: aiContent
         };
       } else {
         throw new Error('No JSON found in AI response');
       }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      return {
-        predicted_gender: 'unknown',
-        confidence: 0,
-        reasoning: 'Failed to parse AI response',
-        primary_indicators: [],
-        error: 'JSON parse error',
-        raw_ai_response: aiContent
-      };
+      console.warn(`Failed to parse AI response for ${user.login}:`, parseError);
+      return analyzeGenderLocally(user);
     }
 
   } catch (error) {
-    console.error('AI gender analysis error:', error);
-    return {
-      predicted_gender: 'unknown',
-      confidence: 0,
-      reasoning: 'AI analysis failed',
-      primary_indicators: [],
-      error: error.message
-    };
+    console.warn(`AI gender analysis error for ${user.login}:`, error.message);
+    return analyzeGenderLocally(user);
   }
+}
+
+// Local Gender Detection Function (fallback)
+function analyzeGenderLocally(user) {
+  const firstName = user.first_name?.toLowerCase() || '';
+  const lastName = user.last_name?.toLowerCase() || '';
+  const login = user.login?.toLowerCase() || '';
+  
+  // Common male names patterns
+  const maleNames = [
+    'mohamed', 'mohammed', 'ahmad', 'ahmed', 'ali', 'hassan', 'hussein', 'omar', 'youssef', 'abdullah',
+    'alexander', 'alex', 'david', 'daniel', 'dan', 'michael', 'mike', 'john', 'james', 'robert', 'william',
+    'pierre', 'jean', 'paul', 'nicolas', 'antoine', 'julien', 'thomas', 'maxime', 'kevin', 'florian',
+    'antonio', 'jose', 'luis', 'carlos', 'miguel', 'francisco', 'fernando', 'rafael', 'sergio', 'pablo',
+    'marco', 'matteo', 'giovanni', 'francesco', 'alessandro', 'lorenzo', 'andrea', 'stefano', 'davide',
+    'yang', 'wei', 'li', 'wang', 'zhang', 'chen', 'liu', 'huang', 'zhao', 'wu',
+    'dmitry', 'vladimir', 'sergey', 'alexey', 'andrey', 'ivan', 'pavel', 'maksim', 'nikita', 'anton'
+  ];
+  
+  // Common female names patterns
+  const femaleNames = [
+    'fatima', 'aisha', 'khadija', 'zeinab', 'maryam', 'sara', 'nour', 'aya', 'layla', 'yasmin',
+    'maria', 'ana', 'laura', 'paula', 'elena', 'cristina', 'sandra', 'monica', 'patricia', 'raquel',
+    'marie', 'sophie', 'camille', 'emma', 'lea', 'manon', 'chloe', 'sarah', 'claire', 'julie',
+    'anna', 'elena', 'giulia', 'francesca', 'chiara', 'valentina', 'federica', 'alice', 'sara', 'martina',
+    'emily', 'emma', 'olivia', 'sophia', 'isabella', 'mia', 'charlotte', 'amelia', 'harper', 'evelyn',
+    'ling', 'mei', 'xin', 'yan', 'min', 'jing', 'hui', 'ping', 'lei', 'fang',
+    'anastasia', 'ekaterina', 'maria', 'anna', 'elena', 'tatyana', 'olga', 'irina', 'natasha', 'svetlana'
+  ];
+  
+  let confidence = 0;
+  let predictedGender = 'unknown';
+  let reasoning = 'Unable to determine gender from available data';
+  let indicators = [];
+  
+  // Check first name
+  if (firstName) {
+    const maleMatch = maleNames.some(name => firstName.includes(name) || name.includes(firstName));
+    const femaleMatch = femaleNames.some(name => firstName.includes(name) || name.includes(firstName));
+    
+    if (maleMatch && !femaleMatch) {
+      predictedGender = 'male';
+      confidence = 75;
+      reasoning = `First name "${user.first_name}" matches common male name patterns`;
+      indicators.push('first_name_pattern');
+    } else if (femaleMatch && !maleMatch) {
+      predictedGender = 'female';
+      confidence = 75;
+      reasoning = `First name "${user.first_name}" matches common female name patterns`;
+      indicators.push('first_name_pattern');
+    }
+  }
+  
+  // Check for gendered endings in names
+  if (confidence === 0) {
+    if (firstName.endsWith('a') || firstName.endsWith('ia') || firstName.endsWith('ina')) {
+      predictedGender = 'female';
+      confidence = 60;
+      reasoning = 'First name has common female ending (-a, -ia, -ina)';
+      indicators.push('name_ending');
+    } else if (firstName.endsWith('o') || firstName.endsWith('us') || firstName.endsWith('er')) {
+      predictedGender = 'male';
+      confidence = 60;
+      reasoning = 'First name has common male ending (-o, -us, -er)';
+      indicators.push('name_ending');
+    }
+  }
+  
+  // Check login patterns
+  if (confidence < 50 && login) {
+    if (login.includes('girl') || login.includes('lady') || login.includes('princess')) {
+      predictedGender = 'female';
+      confidence = Math.max(confidence, 40);
+      reasoning = 'Login contains female-associated terms';
+      indicators.push('login_pattern');
+    } else if (login.includes('boy') || login.includes('guy') || login.includes('king') || login.includes('prince')) {
+      predictedGender = 'male';
+      confidence = Math.max(confidence, 40);
+      reasoning = 'Login contains male-associated terms';
+      indicators.push('login_pattern');
+    }
+  }
+  
+  return {
+    predicted_gender: predictedGender,
+    confidence: confidence,
+    reasoning: reasoning,
+    primary_indicators: indicators,
+    method: 'local_pattern_matching'
+  };
 }
