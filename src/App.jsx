@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { OAuthCallback } from "./components/oauth-callback.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
 import { ProtectedRoute } from "./components/protected-route.jsx";
+import { TestMaleUsers } from "./components/test-male-users.jsx";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/oauth/callback" element={<OAuthCallback />} />
+              <Route path="/test-male-users" element={<TestMaleUsers />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />

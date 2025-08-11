@@ -25,12 +25,12 @@ export default async function handler(req, res) {
     
     // Get query parameters
     const { 
-      cursus_id = '21', 
+      cursus_id = '21',
       'range[begin_at]': rangeBeginAt,
       'page[size]': pageSize = '100',
       'page[number]': pageNumber = '1',
       sort = '-level',
-      'filter[campus_id]': campusId 
+      'filter[campus_id]': campusId,
     } = req.query;
     
     // Build the API URL with query parameters
