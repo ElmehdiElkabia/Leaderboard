@@ -46,14 +46,7 @@ export default async function handler(req, res) {
     const clientSecret = process.env.VITE_42_CLIENT_SECRET;
     const redirectUri = process.env.VITE_42_REDIRECT_URI;
 
-    // Debug logging
-    console.log('Environment check:', {
-      hasClientId: !!clientId,
-      hasClientSecret: !!clientSecret,
-      hasRedirectUri: !!redirectUri,
-      clientId: clientId ? `${clientId.substring(0, 8)}...` : 'missing',
-      redirectUri: redirectUri
-    });
+
 
     if (!clientId || !clientSecret || !redirectUri) {
       console.error('OAuth configuration missing:', {
