@@ -1,9 +1,7 @@
-import { Filter, ArrowUpDown, Info, Lightbulb } from "lucide-react"
+import { Filter, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir" },
@@ -58,57 +56,26 @@ export function LeaderboardFilters({
   poolMonth,
   onPoolMonthChange
 }) {
-  const tips = [
-    "💡 Tip: 42cursus shows students in the main curriculum",
-    "🏊 Tip: Piscine shows swimming pool candidates", 
-    "📊 Tip: Sort by level to see top performers",
-    "🏆 Tip: Click on student avatars to view their full profile",
-    "🌟 Tip: Use campus filter to compare different locations"
-  ];
-
-  const randomTip = tips[Math.floor(Math.random() * tips.length)];
-
   return (
-    <TooltipProvider>
-      <Card className="border-border bg-card/50 backdrop-blur-sm">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {/* Tips Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-amber-500" />
-                <span className="text-sm text-muted-foreground">{randomTip}</span>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                <Info className="h-3 w-3 mr-1" />
-                Filters
-              </Badge>
-            </div>
+    <Card className="border-border bg-card/50 backdrop-blur-sm">
+      <CardContent className="p-6">
+        <div className="space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              {/* Student Type Selector with Tooltip */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Select value={studentType} onValueChange={onStudentTypeChange}>
-                      <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Type" />
-                      </SelectTrigger>
-                      <SelectContent className="border-border bg-popover">
-                        {STUDENT_TYPES.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Choose between 42cursus (main program) or Piscine (selection process)</p>
-                </TooltipContent>
-              </Tooltip>
+              {/* Student Type Selector */}
+              <Select value={studentType} onValueChange={onStudentTypeChange}>
+                <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  {STUDENT_TYPES.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {/* Pool Month Selector - Show only for Piscine */}
               {studentType === "9" && (
@@ -128,29 +95,20 @@ export function LeaderboardFilters({
                 </Select>
               )}
 
-              {/* Campus Selector with Tooltip */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Select value={tempCampusFilter || selectedCampus?.id.toString()} onValueChange={onTempCampusFilterChange}>
-                      <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Campus" />
-                      </SelectTrigger>
-                      <SelectContent className="border-border bg-popover">
-                        {MOROCCAN_CAMPUSES.map((campus) => (
-                          <SelectItem key={campus.id} value={campus.id.toString()}>
-                            {campus.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Filter students by their 42 campus location in Morocco</p>
-                </TooltipContent>
-              </Tooltip>
+              {/* Campus Selector */}
+              <Select value={tempCampusFilter || selectedCampus?.id.toString()} onValueChange={onTempCampusFilterChange}>
+                <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Campus" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  {MOROCCAN_CAMPUSES.map((campus) => (
+                    <SelectItem key={campus.id} value={campus.id.toString()}>
+                      {campus.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
       
 
@@ -169,28 +127,18 @@ export function LeaderboardFilters({
                 </SelectContent>
               </Select>
 
-              {/* Sort Selector with Tooltip */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Select value={sortBy} onValueChange={onSortChange}>
-                      <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
-                        <ArrowUpDown className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent className="border-border bg-popover">
-                        <SelectItem value="level">Level</SelectItem>
-                        <SelectItem value="correctionPoints">Correction Points</SelectItem>
-                        <SelectItem value="wallet">Wallet</SelectItem>
-                        <SelectItem value="login">Login</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sort students by level (highest first), correction points, wallet, or alphabetically</p>
-                </TooltipContent>
-              </Tooltip>
+              <Select value={sortBy} onValueChange={onSortChange}>
+                <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-popover">
+                  <SelectItem value="level">Level</SelectItem>
+                  <SelectItem value="correctionPoints">Correction Points</SelectItem>
+                  <SelectItem value="wallet">Wallet</SelectItem>
+                  <SelectItem value="login">Login</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="flex items-center">
@@ -210,6 +158,5 @@ export function LeaderboardFilters({
         </div>
       </CardContent>
     </Card>
-    </TooltipProvider>
   )
 }
