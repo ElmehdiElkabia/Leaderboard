@@ -36,12 +36,6 @@ const BEGIN_AT = [
   {id: 2025, name: "2025", value: "2025-01-01,2026-01-01"},
 ]
 
-const GENDER_FILTERS = [
-  { id: "all", name: "All Genders", value: "all" },
-  { id: "male", name: "Male", value: "male" },
-  { id: "female", name: "Female", value: "female" },
-];
-
 export function LeaderboardFilters({
   levelFilter,
   onLevelFilterChange,
@@ -60,10 +54,7 @@ export function LeaderboardFilters({
   studentType,
   onStudentTypeChange,
   poolMonth,
-  onPoolMonthChange,
-  genderFilter,
-  onGenderFilterChange,
-  aiGenderStats
+  onPoolMonthChange
 }) {
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
@@ -121,21 +112,6 @@ export function LeaderboardFilters({
 
       
 
-              {/* Gender Selector */}
-              <Select value={genderFilter} onValueChange={onGenderFilterChange}>
-                <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Gender" />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-popover">
-                  {GENDER_FILTERS.map((gender) => (
-                    <SelectItem key={gender.id} value={gender.value}>
-                      {gender.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <Select value={yearFilter} onValueChange={onYearFilterChange}>
                 <SelectTrigger className="w-full sm:w-[120px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
@@ -178,12 +154,6 @@ export function LeaderboardFilters({
 
           <div className="text-sm text-muted-foreground">
             Showing {filteredStudents} of {totalStudents} students
-            {aiGenderStats && (
-              <span className="ml-4 text-xs bg-blue-50 px-2 py-1 rounded">
-                AI Gender: {aiGenderStats.male}M / {aiGenderStats.female}F / {aiGenderStats.unknown}? 
-                ({aiGenderStats.total} analyzed)
-              </span>
-            )}
           </div>
         </div>
       </CardContent>

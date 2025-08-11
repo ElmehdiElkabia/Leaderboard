@@ -6,7 +6,7 @@ import { LeaderboardTable } from "./leaderboard-table";
 import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Users, Filter, Brain, Loader2 } from "lucide-react";
+import { Search, Users, Filter } from "lucide-react";
 
 // Cookie helpers
 const setCookie = (name, value, days = 30) => {
@@ -48,10 +48,6 @@ export function Leaderboard({
   // Get user data to determine default student type
   const userData = auth.getUserData();
   
-  // Gender analysis state
-  const [genderAnalysis, setGenderAnalysis] = useState(null);
-  const [genderAnalysisLoading, setGenderAnalysisLoading] = useState(false);
-  
   // Determine default student type based on user's cursus
   const getDefaultStudentType = () => {
     if (userData?.cursus_users) {
@@ -74,7 +70,6 @@ export function Leaderboard({
     sort: "level",
     studentType: parentStudentType || getDefaultStudentType(),
     poolMonth: parentPoolMonth || "all",
-    gender: "all", // Add gender filter
   };
 
   const [levelFilter, setLevelFilter] = useState(savedFilters.level);
@@ -83,66 +78,10 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
-  const [genderFilter, setGenderFilter] = useState(savedFilters.gender);
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
 
-  // AI Gender Analysis Effect
-  useEffect(() => {
-    if (students && students.length > 0 && !genderAnalysis && !genderAnalysisLoading) {
-      analyzeGenderForStudents();
-    }
-  }, [students]);
-
-  const analyzeGenderForStudents = async () => {
-    setGenderAnalysisLoading(true);
-    try {
-      // Prepare user data for analysis
-      const usersForAnalysis = students.map(student => ({
-        id: student.id || student.user?.id,
-        login: student.login || student.user?.login,
-        first_name: student.first_name || student.user?.first_name,
-        last_name: student.last_name || student.user?.last_name,
-        email: student.email || student.user?.email
-      }));
-
-      const response = await fetch('https://www.13namima.me/api/ai-gender-analysis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          users: usersForAnalysis
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setGenderAnalysis(data);
-        console.log('Gender analysis complete:', data.stats);
-      } else {
-        console.error('Gender analysis failed:', response.status);
-      }
-    } catch (error) {
-      console.error('Gender analysis error:', error);
-    } finally {
-      setGenderAnalysisLoading(false);
-    }
-  };
-
-  // Create a map of user gender predictions for quick lookup
-  const genderPredictions = useMemo(() => {
-    if (!genderAnalysis?.analyzed_users) return {};
-    
-    const predictions = {};
-    genderAnalysis.analyzed_users.forEach(user => {
-      predictions[user.id] = user.gender_prediction;
-    });
-    return predictions;
-  }, [genderAnalysis]);
-
-  // Filter students based on applied filters (including gender)
+  // Filter students based on applied filters
   const filteredStudents = useMemo(() => {
     let filtered = students;
 
@@ -151,15 +90,6 @@ export function Leaderboard({
       filtered = filtered.filter(
         (student) => student.campus === appliedFilters.campus
       );
-    }
-
-    // Apply gender filter
-    if (appliedFilters.gender !== "all" && genderPredictions) {
-      filtered = filtered.filter((student) => {
-        const userId = student.id || student.user?.id;
-        const prediction = genderPredictions[userId];
-        return prediction?.predicted_gender === appliedFilters.gender;
-      });
     }
 
     // Apply level filter
@@ -204,7 +134,7 @@ export function Leaderboard({
     });
 
     return filtered;
-  }, [students, appliedFilters, genderPredictions]);
+  }, [students, appliedFilters]);
 
   const handleApplyFilters = () => {
     const newFilters = {
@@ -214,7 +144,6 @@ export function Leaderboard({
       sort: sortBy,
       studentType: studentType,
       poolMonth: poolMonth,
-      gender: genderFilter, // Add gender filter
     };
     setAppliedFilters(newFilters);
     setCookie("leaderboardFilters", newFilters);
@@ -280,18 +209,6 @@ export function Leaderboard({
             <h2 className="text-2xl font-bold mb-2">Complete Rankings</h2>
             <p className="text-muted-foreground">
               Full leaderboard for all 1337 Moroccan campuses
-              {genderAnalysisLoading && (
-                <span className="ml-2 inline-flex items-center text-sm text-blue-600">
-                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                  Analyzing genders with AI...
-                </span>
-              )}
-              {genderAnalysis && !genderAnalysisLoading && (
-                <span className="ml-2 inline-flex items-center text-sm text-green-600">
-                  <Brain className="w-4 h-4 mr-1" />
-                  AI analysis complete
-                </span>
-              )}
             </p>
           </div>
 
@@ -309,15 +226,12 @@ export function Leaderboard({
             onStudentTypeChange={setStudentType}
             poolMonth={poolMonth}
             onPoolMonthChange={setPoolMonth}
-            genderFilter={genderFilter}
-            onGenderFilterChange={setGenderFilter}
             totalStudents={students.length}
             filteredStudents={filteredStudents.length}
             selectedCampus={selectedCampus}
             onApplyFilters={handleApplyFilters}
             tempCampusFilter={tempCampusFilter}
             onTempCampusFilterChange={setTempCampusFilter}
-            aiGenderStats={genderAnalysis?.stats}
           />
 
           {/* Table */}
