@@ -239,7 +239,6 @@ export function Leaderboard({
             <LeaderboardTable 
               students={filteredStudents} 
               startIndex={0} 
-              genderPredictions={genderPredictions}
             />
           ) : (
             <motion.div
