@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     console.log('Token received, testing available filters...');
 
     // First, let's test with a valid filter - fetch users by kind (student)
-    const usersResponse = await fetch('https://api.intra.42.fr/v2/users?filter[kind]=student&page[size]=10', {
+    const usersResponse = await fetch('https://api.intra.42.fr/v2/users?filter[kind]=student&page[size]=100', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
         'User-Agent': 'LeaderboardApp/1.0',
