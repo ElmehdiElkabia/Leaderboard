@@ -128,11 +128,6 @@ export default async function handler(req, res) {
       // Additional filtering will be handled by date_range primarily
     }
 
-    // Add search functionality
-    if (filters && filters.search) {
-      apiUrl.searchParams.set("search[login]", filters.search);
-    }
-
     // Secure data fetch with comprehensive headers
     const progressResponse = await fetch(apiUrl.toString(), {
       headers: {

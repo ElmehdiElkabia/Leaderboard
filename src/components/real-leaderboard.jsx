@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, Users, GraduationCap, Plus } from "lucide-react";
 import { Leaderboard } from "@/components/leaderboard";
 import { mockStudents } from "@/lib/mock-data";
-import { useDebounce } from "@/hooks/use-debounce";
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir", slug: "benguerir" },
@@ -56,8 +55,6 @@ export function RealLeaderboard() {
   const [yearFilter, setYearFilter] = useState("2024-01-01,2025-01-01"); // Default to 2024
   const [studentType, setStudentType] = useState("21"); // Default to 42cursus
   const [poolMonth, setPoolMonth] = useState("all"); // Default to all months
-  const [searchQuery, setSearchQuery] = useState(""); // Search functionality
-  const [isSearching, setIsSearching] = useState(false); // Loading state for search
   const [stats, setStats] = useState({
     totalStudents: 0,
     averageLevel: 0,
@@ -65,23 +62,7 @@ export function RealLeaderboard() {
   });
   const leaderboardRef = useRef(null);
 
-  // Debounce search query to avoid excessive API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-
-  // Effect to trigger search when debounced query changes
-  useEffect(() => {
-    if (debouncedSearchQuery !== searchQuery) return; // Still debouncing
-    
-    // Only trigger search if we have a search query or if search was cleared
-    // This prevents initial load conflicts
-    if (searchQuery.trim() !== "" || (searchQuery === "" && debouncedSearchQuery === "")) {
-      setIsSearching(true);
-      fetchLeaderboardData(selectedCampus.id, 1, false, null, debouncedSearchQuery.trim() || null)
-        .finally(() => setIsSearching(false));
-    }
-  }, [debouncedSearchQuery]);
-
-  const fetchLeaderboardData = async (campusId, page = 1, append = false, dateRange = null, searchTerm = null) => {
+  const fetchLeaderboardData = async (campusId, page = 1, append = false, dateRange = null) => {
     if (page === 1) {
       setLoading(true);
       setStudents([]);
@@ -127,8 +108,7 @@ export function RealLeaderboard() {
         filters: {
           active_only: true,
           sort_by: "level",
-          sort_order: "desc",
-          search: searchTerm || undefined
+          sort_order: "desc"
         }
       };
 
@@ -289,11 +269,6 @@ export function RealLeaderboard() {
     setHasMore(true);
   };
 
-  const handleSearchChange = (query) => {
-    setSearchQuery(query);
-    // The debounced effect will handle the API call
-  };
-
   if (loading) {
     // Show mock data with loading skeleton while fetching real data
     const loadingStudents = mockStudents.slice(0, 10).map((student, index) => ({
@@ -333,9 +308,6 @@ export function RealLeaderboard() {
               onStudentTypeChange={() => {}}
               poolMonth={poolMonth}
               onPoolMonthChange={() => {}}
-              searchQuery={searchQuery}
-              onSearchChange={() => {}}
-              isSearching={isSearching}
             />
           </div>
           <div className="fixed inset-0 bg-background/20 backdrop-blur-sm flex items-center justify-center z-50">
@@ -392,9 +364,6 @@ export function RealLeaderboard() {
           onStudentTypeChange={handleStudentTypeChange}
           poolMonth={poolMonth}
           onPoolMonthChange={handlePoolMonthChange}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          isSearching={isSearching}
         />
       </div>
 
