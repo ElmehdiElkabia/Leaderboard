@@ -79,37 +79,46 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('Token received, fetching male users...');
+    console.log('Token received, testing available filters...');
 
-    // Test fetching male users
-    const maleUsersResponse = await fetch('https://api.intra.42.fr/v2/users?filter[gender]=male&page[size]=10', {
+    // First, let's test with a valid filter - fetch users by kind (student)
+    const usersResponse = await fetch('https://api.intra.42.fr/v2/users?filter[kind]=student&page[size]=10', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
         'User-Agent': 'LeaderboardApp/1.0',
       },
     });
 
-    if (!maleUsersResponse.ok) {
-      console.error('Male users fetch failed:', maleUsersResponse.status);
-      const errorText = await maleUsersResponse.text();
+    if (!usersResponse.ok) {
+      console.error('Users fetch failed:', usersResponse.status);
+      const errorText = await usersResponse.text();
       console.error('Error response:', errorText);
-      return res.status(maleUsersResponse.status).json({
-        error: 'Failed to fetch male users',
-        details: `HTTP ${maleUsersResponse.status}`,
+      return res.status(usersResponse.status).json({
+        error: 'Failed to fetch users',
+        details: `HTTP ${usersResponse.status}`,
         response: errorText
       });
     }
 
-    const maleUsersData = await maleUsersResponse.json();
+    const usersData = await usersResponse.json();
     
-    console.log(`Fetched ${maleUsersData.length} male users`);
+    // Now let's see what user data fields are actually available
+    console.log('Sample user fields:', usersData.length > 0 ? Object.keys(usersData[0]) : 'No users found');
+    
+    console.log(`Fetched ${usersData.length} users`);
 
-    // Return the data with some additional info
+    // Check if any users have gender information in their data
+    const usersWithGenderInfo = usersData.filter(user => user.gender || user.sex);
+    
+    // Return the data with analysis of available fields
     return res.json({
       success: true,
-      message: 'Successfully fetched male users',
-      count: maleUsersData.length,
-      users: maleUsersData.map(user => ({
+      message: 'Successfully fetched users (gender filter not available in API)',
+      note: 'Available filters are: id, login, email, created_at, updated_at, pool_year, pool_month, kind, status, primary_campus_id, first_name, last_name, alumni?, staff?',
+      count: usersData.length,
+      users_with_gender_info: usersWithGenderInfo.length,
+      filter_used: 'filter[kind]=student',
+      users: usersData.map(user => ({
         id: user.id,
         login: user.login,
         email: user.email,
@@ -119,10 +128,20 @@ export default async function handler(req, res) {
         image: user.image,
         campus: user.campus,
         cursus_users: user.cursus_users,
-        // Add any other fields you want to see
+        kind: user.kind,
+        staff: user['staff?'],
+        alumni: user['alumni?'],
+        // Check for any gender-related fields
+        gender: user.gender || null,
+        sex: user.sex || null,
+        // Add any other fields that might be interesting
+        pool_year: user.pool_year,
+        pool_month: user.pool_month,
+        created_at: user.created_at,
+        updated_at: user.updated_at
       })),
       // For debugging - show available fields from first user
-      available_fields: maleUsersData.length > 0 ? Object.keys(maleUsersData[0]) : [],
+      available_fields: usersData.length > 0 ? Object.keys(usersData[0]) : [],
       token_type: tokenData.token_type,
       expires_in: tokenData.expires_in
     });

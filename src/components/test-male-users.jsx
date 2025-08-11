@@ -41,9 +41,9 @@ export function TestMaleUsers() {
     <div className="max-w-4xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Test Male Users API</CardTitle>
+          <CardTitle>Test Users API (Gender Filter Analysis)</CardTitle>
           <CardDescription>
-            Test the 42 API endpoint: /v2/users?filter[gender]=male
+            Testing 42 API endpoint: /v2/users with available filters (gender is not supported)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -58,7 +58,7 @@ export function TestMaleUsers() {
                 Testing API...
               </>
             ) : (
-              'Test Male Users API'
+              'Test Users API (Check Gender Data)'
             )}
           </Button>
 
@@ -78,10 +78,15 @@ export function TestMaleUsers() {
               <CardHeader>
                 <CardTitle className="text-green-700">Success!</CardTitle>
                 <CardDescription>
-                  Found {result.count} male users
+                  Found {result.count} users • {result.users_with_gender_info} with gender info • Filter: {result.filter_used}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                  <p className="text-sm font-medium text-blue-800 mb-2">API Filter Limitation:</p>
+                  <p className="text-sm text-blue-700">{result.note}</p>
+                </div>
+                
                 <div className="grid gap-2">
                   <p><strong>Token Type:</strong> {result.token_type}</p>
                   <p><strong>Expires In:</strong> {result.expires_in} seconds</p>
@@ -100,14 +105,19 @@ export function TestMaleUsers() {
                             className="w-8 h-8 rounded-full"
                           />
                         )}
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{user.login}</p>
                           <p className="text-sm text-gray-600">
                             {user.first_name} {user.last_name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            Campus: {user.campus?.[0]?.name || 'N/A'}
+                            Campus: {user.campus?.[0]?.name || 'N/A'} • Kind: {user.kind}
                           </p>
+                          {(user.gender || user.sex) && (
+                            <p className="text-xs text-green-600 font-medium">
+                              Gender: {user.gender || user.sex}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </Card>
