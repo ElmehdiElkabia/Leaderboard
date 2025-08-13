@@ -36,7 +36,7 @@ export function StudentProfileModal({ student, trigger, isOpen, onOpenChange }) 
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-bold">{student.name || student.login}</h2>
+              <h2 className="text-xl font-bold">{student.displayname || student.usual_full_name || student.first_name && student.last_name}</h2>
               <p className="text-muted-foreground">@{student.login}</p>
             </div>
           </DialogTitle>
