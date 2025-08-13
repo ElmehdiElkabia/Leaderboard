@@ -13,8 +13,6 @@ export function LeaderboardTable({ students, startIndex = 0 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAvatarClick = (student) => {
-	console.log(student);
-	console.log(students);
     setSelectedStudent(student);
     setIsModalOpen(true);
   };

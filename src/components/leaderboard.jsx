@@ -92,28 +92,6 @@ export function Leaderboard({
       );
     }
 
-    // Apply level filter
-    switch (appliedFilters.level) {
-      case "21+":
-        filtered = filtered.filter((student) => student.level >= 21);
-        break;
-      case "15+":
-        filtered = filtered.filter((student) => student.level >= 15);
-        break;
-      case "10+":
-        filtered = filtered.filter((student) => student.level >= 10);
-        break;
-      case "5+":
-        filtered = filtered.filter((student) => student.level >= 5);
-        break;
-      case "0-5":
-        filtered = filtered.filter((student) => student.level < 5);
-        break;
-      default:
-        // "all" - no additional filtering
-        break;
-    }
-
     // Apply year filter - Skip since API already filters by year
     // The real-leaderboard.jsx handles year filtering via API date ranges
 

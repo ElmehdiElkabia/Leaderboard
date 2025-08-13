@@ -19,13 +19,6 @@ import {
 } from "lucide-react";
 
 export function StudentProfileModal({ student, trigger, isOpen, onOpenChange }) {
-	const getFullName = () => {
-	if (student.displayname) return student.displayname;
-	if (student.usual_full_name) return student.usual_full_name;
-	if (student.first_name && student.last_name) return `${student.first_name} ${student.last_name}`;
-	return student.login;
-};
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
@@ -43,7 +36,7 @@ export function StudentProfileModal({ student, trigger, isOpen, onOpenChange }) 
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-bold">{getFullName()}</h2>
+              <h2 className="text-xl font-bold">{student.name || student.login}</h2>
               <p className="text-muted-foreground">@{student.login}</p>
             </div>
           </DialogTitle>
