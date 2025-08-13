@@ -20,6 +20,7 @@ import {
 
 export function StudentProfileModal({ student, trigger, isOpen, onOpenChange }) {
 	const getFullName = () => {
+		console.log(student);
 	if (student.displayname) return student.displayname;
 	if (student.usual_full_name) return student.usual_full_name;
 	if (student.first_name && student.last_name) return `${student.first_name} ${student.last_name}`;
