@@ -51,13 +51,11 @@ class CachedApi {
     const cached = cacheEngine.get(cacheKey);
     if (cached) {
       this.stats.cacheHits++;
-      console.log(`Cache HIT for key: ${cacheKey}`);
       return cached;
     }
 
     // Cache miss, fetch from API
     this.stats.cacheMisses++;
-    console.log(`Cache MISS for key: ${cacheKey}`);
 
     try {
       const data = await fetchFunction();
@@ -85,13 +83,11 @@ class CachedApi {
     const cached = leaderboardCache.getLeaderboardData(params);
     if (cached) {
       this.stats.cacheHits++;
-      console.log(`Leaderboard cache HIT for: campus=${params.campus_id}, page=${params.page}`);
       return cached;
     }
 
     // Cache miss, fetch from API
     this.stats.cacheMisses++;
-    console.log(`Leaderboard cache MISS for: campus=${params.campus_id}, page=${params.page}`);
 
     try {
       const data = await this.fetchLeaderboardDataDirect(params);
@@ -257,14 +253,12 @@ class CachedApi {
   // Invalidate cache for specific campus
   invalidateCampusCache(campusId) {
     const invalidated = leaderboardCache.invalidateCampus(campusId);
-    console.log(`Invalidated ${invalidated} cache entries for campus ${campusId}`);
     return invalidated;
   }
 
   // Invalidate cache for specific cursus
   invalidateCursusCache(cursusId) {
     const invalidated = leaderboardCache.invalidateCursus(cursusId);
-    console.log(`Invalidated ${invalidated} cache entries for cursus ${cursusId}`);
     return invalidated;
   }
 
@@ -272,8 +266,6 @@ class CachedApi {
   clearAllCache() {
     const leaderboardCleared = leaderboardCache.clear();
     const generalCleared = cacheEngine.clear();
-    
-    console.log(`Cleared ${leaderboardCleared + generalCleared} total cache entries`);
     
     // Reset stats
     this.stats = {
@@ -288,13 +280,10 @@ class CachedApi {
 
   // Preload common data
   async preloadCommonData() {
-    console.log('Preloading common leaderboard data...');
-    
     try {
       await leaderboardCache.preloadCommonData(this.getLeaderboardData.bind(this));
-      console.log('Preload completed successfully');
     } catch (error) {
-      console.warn('Preload failed:', error);
+      console.warn('Cache preload failed:', error);
     }
   }
 

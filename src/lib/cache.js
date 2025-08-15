@@ -108,10 +108,8 @@ class CacheEngine {
           this.expirationTimes.set(key, entry.expiresAt);
         }
       }
-
-      console.log(`Loaded ${this.cache.size} cache entries from storage`);
     } catch (error) {
-      console.warn('Failed to load cache from storage:', error);
+      // Silent fail for storage loading
     }
   }
 
@@ -145,9 +143,8 @@ class CacheEngine {
       };
 
       localStorage.setItem(this.persistKey, JSON.stringify(data));
-      console.log(`Saved ${Object.keys(entries).length} cache entries to storage`);
     } catch (error) {
-      console.warn('Failed to save cache to storage:', error);
+      // Silent fail for storage saving
     }
   }
 
@@ -202,10 +199,6 @@ class CacheEngine {
     }
 
     expiredKeys.forEach(key => this.delete(key));
-    
-    if (expiredKeys.length > 0) {
-      console.log(`Cache cleanup: removed ${expiredKeys.length} expired entries`);
-    }
   }
 
   // Invalidate entries by pattern

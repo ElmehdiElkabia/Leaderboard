@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, Users, GraduationCap, Plus } from "lucide-react";
 import { Leaderboard } from "@/components/leaderboard";
 import { cachedApi, cacheUtils } from "@/lib/cached-api";
-import CacheStatus from "@/components/cache-status";
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir", slug: "benguerir" },
@@ -317,9 +316,6 @@ export function RealLeaderboard() {
           </Button>
         </div>
       )}
-
-      {/* Cache Status Monitor - floating in bottom right */}
-      <CacheStatus floating={true} expanded={false} showControls={true} />
     </div>
   );
 }

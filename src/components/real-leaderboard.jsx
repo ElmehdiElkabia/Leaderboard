@@ -7,7 +7,6 @@ import { Loader2, Trophy, Users, GraduationCap, Plus } from "lucide-react";
 import { Leaderboard } from "@/components/leaderboard";
 import { mockStudents } from "@/lib/mock-data";
 import { cachedApi, cacheUtils } from "@/lib/cached-api";
-import CacheStatus from "@/components/cache-status";
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir", slug: "benguerir" },

@@ -53,7 +53,6 @@ class CacheConfig {
     }
     
     this.currentPreset = preset;
-    console.log(`Cache preset changed to: ${preset}`);
     
     // Update cache instances with new TTLs
     this.updateCacheSettings();
@@ -76,7 +75,6 @@ class CacheConfig {
   // Set custom TTL for specific data type
   setTTL(dataType, ttl) {
     this.customTTLs[dataType] = ttl;
-    console.log(`Custom TTL set for ${dataType}: ${ttl}ms`);
     return this;
   }
 
@@ -102,7 +100,6 @@ class CacheConfig {
   // Enable/disable caching globally
   setEnabled(enabled) {
     this.globalSettings.enabled = enabled;
-    console.log(`Caching ${enabled ? 'enabled' : 'disabled'}`);
     
     if (!enabled) {
       // Clear all caches when disabled
@@ -141,7 +138,6 @@ class CacheConfig {
     this.customTTLs = {};
     this.globalSettings.enabled = true;
     this.updateCacheSettings();
-    console.log('Cache configuration reset to defaults');
     return this;
   }
 
