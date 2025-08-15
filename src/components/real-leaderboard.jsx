@@ -367,9 +367,6 @@ export function RealLeaderboard() {
         />
       </div>
 
-      {/* Cache Status Monitor - floating in bottom right */}
-      <CacheStatus floating={true} expanded={false} showControls={true} />
-
       {/* No Data State - when API returns empty but no error */}
       {!loading && !error && students.length === 0 && (
         <div className="flex justify-center">
