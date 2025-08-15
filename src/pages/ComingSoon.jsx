@@ -22,7 +22,7 @@ const featureConfig = {
     icon: Home,
     title: "Social Feed",
     description: "Share achievements, coding progress, and connect with fellow 42 students",
-    progress: 25,
+    progress: 0,
     features: [
       "📝 Share daily coding progress",
       "🏆 Celebrate project completions",
@@ -42,7 +42,7 @@ const featureConfig = {
     icon: Users,
     title: "Study Groups",
     description: "Form study groups, collaborate on projects, and learn together",
-    progress: 40,
+    progress: 0,
     features: [
       "👥 Create project-specific teams",
       "📅 Schedule study sessions",
@@ -62,7 +62,7 @@ const featureConfig = {
     icon: MessageCircle,
     title: "Direct Messages",
     description: "Private messaging for collaboration and peer support",
-    progress: 15,
+    progress: 0,
     features: [
       "💬 Real-time messaging",
       "📁 File and code sharing",
@@ -82,7 +82,7 @@ const featureConfig = {
     icon: BookOpen,
     title: "Learning Resources",
     description: "Community-driven tutorials, guides, and study materials",
-    progress: 60,
+    progress: 0,
     features: [
       "📚 Curated learning paths",
       "📝 Student-written tutorials",
