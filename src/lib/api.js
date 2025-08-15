@@ -1,5 +1,7 @@
 // API utility for making calls through your backend to avoid CORS
+// Now enhanced with intelligent caching for better performance
 import { auth } from './auth';
+import { cachedApi } from './cached-api';
 
 export const api = {
   // Base URL for your API endpoints
@@ -17,8 +19,19 @@ export const api = {
     };
   },
   
-  // Get cursus users (leaderboard data)
+  // Get cursus users (leaderboard data) - now with caching
   getCursusUsers: async (params = {}) => {
+    // Use cached version if available
+    try {
+      return await cachedApi.getCursusUsers(params);
+    } catch (error) {
+      // Fallback to direct API call
+      return await api.getCursusUsersDirect(params);
+    }
+  },
+
+  // Direct (non-cached) version for fallback
+  getCursusUsersDirect: async (params = {}) => {
     const searchParams = new URLSearchParams();
     
     // Default parameters
@@ -50,8 +63,18 @@ export const api = {
     return response.json();
   },
   
-  // Get campus data
+  // Get campus data - now with caching
   getCampus: async (campusId = null) => {
+    try {
+      return await cachedApi.getCampus(campusId);
+    } catch (error) {
+      // Fallback to direct API call
+      return await api.getCampusDirect(campusId);
+    }
+  },
+
+  // Direct (non-cached) version for fallback
+  getCampusDirect: async (campusId = null) => {
     const url = campusId 
       ? `/api/campus?campus_id=${campusId}`
       : '/api/campus';
@@ -67,8 +90,18 @@ export const api = {
     return response.json();
   },
   
-  // Get user data
+  // Get user data - now with caching
   getMe: async () => {
+    try {
+      return await cachedApi.getMe();
+    } catch (error) {
+      // Fallback to direct API call
+      return await api.getMeDirect();
+    }
+  },
+
+  // Direct (non-cached) version for fallback
+  getMeDirect: async () => {
     const response = await fetch('/api/user-me', {
       headers: api.getAuthHeaders(),
     });
@@ -80,8 +113,18 @@ export const api = {
     return response.json();
   },
   
-  // General proxy for any 42 API endpoint
+  // General proxy for any 42 API endpoint - now with caching
   intraProxy: async (path, options = {}) => {
+    try {
+      return await cachedApi.intraProxy(path, options);
+    } catch (error) {
+      // Fallback to direct API call
+      return await api.intraProxyDirect(path, options);
+    }
+  },
+
+  // Direct (non-cached) version for fallback
+  intraProxyDirect: async (path, options = {}) => {
     const { method = 'GET', params = {}, body } = options;
     
     let url = `/api/intra-proxy?path=${encodeURIComponent(path)}`;
@@ -111,16 +154,49 @@ export const api = {
     return response.json();
   },
   
-  // Specific methods for common endpoints
+  // Specific methods for common endpoints - now with caching
   getProjects: async (params = {}) => {
-    return api.intraProxy('projects', { params });
+    try {
+      return await cachedApi.getProjects(params);
+    } catch (error) {
+      return api.intraProxyDirect('projects', { params });
+    }
   },
   
   getUsers: async (params = {}) => {
-    return api.intraProxy('users', { params });
+    try {
+      return await cachedApi.getUsers(params);
+    } catch (error) {
+      return api.intraProxyDirect('users', { params });
+    }
   },
   
   getCoalitions: async (params = {}) => {
-    return api.intraProxy('coalitions', { params });
+    try {
+      return await cachedApi.getCoalitions(params);
+    } catch (error) {
+      return api.intraProxyDirect('coalitions', { params });
+    }
   },
+
+  // Cache management methods
+  cache: {
+    // Clear all API caches
+    clear: () => cachedApi.clearAllCache(),
+    
+    // Invalidate campus-specific cache
+    invalidateCampus: (campusId) => cachedApi.invalidateCampusCache(campusId),
+    
+    // Invalidate cursus-specific cache
+    invalidateCursus: (cursusId) => cachedApi.invalidateCursusCache(cursusId),
+    
+    // Get cache statistics
+    getStats: () => cachedApi.getCacheStats(),
+    
+    // Get performance report
+    getReport: () => cachedApi.getPerformanceReport(),
+    
+    // Preload common data
+    preload: () => cachedApi.preloadCommonData(),
+  }
 };

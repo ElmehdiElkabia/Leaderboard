@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { auth } from "@/lib/auth";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, Users, GraduationCap, Plus } from "lucide-react";
 import { Leaderboard } from "@/components/leaderboard";
+import { cachedApi, cacheUtils } from "@/lib/cached-api";
+import CacheStatus from "@/components/cache-status";
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir", slug: "benguerir" },
@@ -68,39 +69,28 @@ export function RealLeaderboard() {
     setError(null);
     
     try {
-      // Use our backend API instead of direct 42 API calls
-      const params = new URLSearchParams({
-        campus_id: campusId.toString(),
-        page: page.toString(),
-        per_page: USERS_PER_PAGE.toString(),
-        cursus_id: '21', // 42cursus
-      });
-      
-      const response = await fetch(`/api/leaderboard-data?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
+      // Use the cached API for leaderboard data
+      const requestParams = {
+        campus_id: parseInt(campusId),
+        page: parseInt(page),
+        per_page: USERS_PER_PAGE,
+        cursus_id: 21, // 42cursus
+        filters: {
+          active_only: true,
+          sort_by: "level",
+          sort_order: "desc"
         }
-      });
+      };
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch leaderboard: ${response.status}`);
-      }
-      
-      const apiResponse = await response.json();
-      
-      if (!apiResponse.success || !apiResponse.data) {
-        throw new Error('Invalid response format');
-      }
-      
-      const cursusUsers = apiResponse.data;
+      // Use cached API for leaderboard data
+      const cursusUsers = await cachedApi.getLeaderboardData(requestParams);
       
       // Check if there are more pages
       setHasMore(cursusUsers.length === USERS_PER_PAGE);
       
       // Transform the backend data to match our frontend format
       const transformedStudents = cursusUsers.map((userData, index) => ({
-        id: userData.id,
+        id: userData.user?.id || userData.id,
         rank: userData.rank || (((page - 1) * USERS_PER_PAGE) + index + 1),
         name: userData.login, // Backend provides safe data
         login: userData.login,
@@ -164,12 +154,25 @@ export function RealLeaderboard() {
     }
   }, [selectedCampus]);
 
+  // Preload common data on component mount
+  useEffect(() => {
+    if (auth.isAuthenticated()) {
+      // Preload common campus combinations in the background
+      cacheUtils.preload().catch(error => {
+        console.warn('Cache preload failed:', error);
+      });
+    }
+  }, []);
+
   const handleCampusChange = (campusId) => {
     const campus = MOROCCAN_CAMPUSES.find(c => c.id === parseInt(campusId));
     setSelectedCampus(campus);
     setNextPage(2);
     setHasMore(true);
     setCookie('selectedCampusId', campusId); // Save to cookies
+    
+    // Invalidate cache for the new campus to ensure fresh data
+    cacheUtils.invalidateCampus(parseInt(campusId));
   };
 
   if (loading) {
@@ -314,6 +317,9 @@ export function RealLeaderboard() {
           </Button>
         </div>
       )}
+
+      {/* Cache Status Monitor - floating in bottom right */}
+      <CacheStatus floating={true} expanded={false} showControls={true} />
     </div>
   );
 }
