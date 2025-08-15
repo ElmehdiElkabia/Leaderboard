@@ -171,8 +171,8 @@ export function RealLeaderboard() {
     setHasMore(true);
     setCookie('selectedCampusId', campusId); // Save to cookies
     
-    // Invalidate cache for the new campus to ensure fresh data
-    cacheUtils.invalidateCampus(parseInt(campusId));
+    // Let cache handle the data loading - no need to invalidate
+    // Cache will serve existing data instantly or fetch if needed
   };
 
   if (loading) {

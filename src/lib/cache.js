@@ -8,6 +8,8 @@ class CacheEngine {
     this.expirationTimes = new Map();
     this.maxSize = options.maxSize || 100;
     this.defaultTTL = options.defaultTTL || 5 * 60 * 1000; // 5 minutes
+    this.persistKey = options.persistKey || 'app_cache';
+    this.enablePersistence = options.enablePersistence !== false; // Default true
     
     // Statistics
     this.stats = {
@@ -17,10 +19,22 @@ class CacheEngine {
       sets: 0
     };
     
+    // Load from localStorage on initialization
+    if (this.enablePersistence) {
+      this.loadFromStorage();
+    }
+    
     // Auto-cleanup expired entries every 30 seconds
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 30000);
+    
+    // Auto-save to localStorage every 60 seconds
+    if (this.enablePersistence) {
+      this.saveInterval = setInterval(() => {
+        this.saveToStorage();
+      }, 60000);
+    }
   }
 
   // Generate a consistent cache key from parameters
@@ -69,7 +83,82 @@ class CacheEngine {
     this.expirationTimes.set(key, now + finalTTL);
     this.stats.sets++;
 
+    // Trigger save to localStorage for important cache entries
+    if (this.enablePersistence && key.includes('leaderboard:')) {
+      this.debouncedSave();
+    }
+
     return true;
+  }
+
+  // Load cache from localStorage
+  loadFromStorage() {
+    try {
+      const stored = localStorage.getItem(this.persistKey);
+      if (!stored) return;
+
+      const data = JSON.parse(stored);
+      const now = Date.now();
+
+      // Restore non-expired entries
+      for (const [key, entry] of Object.entries(data.entries || {})) {
+        if (entry.expiresAt > now) {
+          this.cache.set(key, entry.value);
+          this.accessTimes.set(key, entry.accessTime);
+          this.expirationTimes.set(key, entry.expiresAt);
+        }
+      }
+
+      console.log(`Loaded ${this.cache.size} cache entries from storage`);
+    } catch (error) {
+      console.warn('Failed to load cache from storage:', error);
+    }
+  }
+
+  // Save cache to localStorage
+  saveToStorage() {
+    if (!this.enablePersistence) return;
+
+    try {
+      const now = Date.now();
+      const entries = {};
+
+      // Only save non-expired, important entries
+      for (const [key, value] of this.cache) {
+        const expiresAt = this.expirationTimes.get(key);
+        const accessTime = this.accessTimes.get(key);
+
+        // Only save if not expired and is important data
+        if (expiresAt > now && (key.includes('leaderboard:') || key.includes('campus:') || key.includes('user:'))) {
+          entries[key] = {
+            value,
+            expiresAt,
+            accessTime
+          };
+        }
+      }
+
+      const data = {
+        entries,
+        savedAt: now,
+        version: '1.0'
+      };
+
+      localStorage.setItem(this.persistKey, JSON.stringify(data));
+      console.log(`Saved ${Object.keys(entries).length} cache entries to storage`);
+    } catch (error) {
+      console.warn('Failed to save cache to storage:', error);
+    }
+  }
+
+  // Debounced save to avoid too frequent localStorage writes
+  debouncedSave() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.saveTimeout = setTimeout(() => {
+      this.saveToStorage();
+    }, 2000); // Save after 2 seconds of inactivity
   }
 
   // Delete specific key
@@ -178,6 +267,18 @@ class CacheEngine {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
     }
+    if (this.saveInterval) {
+      clearInterval(this.saveInterval);
+    }
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    // Final save before destroying
+    if (this.enablePersistence) {
+      this.saveToStorage();
+    }
+    
     this.clear();
   }
 }
@@ -187,7 +288,9 @@ class LeaderboardCache extends CacheEngine {
   constructor() {
     super({
       maxSize: 200, // More entries for leaderboard data
-      defaultTTL: 2 * 60 * 1000 // 2 minutes default for leaderboard
+      defaultTTL: 2 * 60 * 1000, // 2 minutes default for leaderboard
+      persistKey: 'leaderboard_cache',
+      enablePersistence: true // Enable persistence for leaderboard cache
     });
   }
 
@@ -261,7 +364,12 @@ class LeaderboardCache extends CacheEngine {
 }
 
 // Export instances
-export const cacheEngine = new CacheEngine();
+export const cacheEngine = new CacheEngine({
+  maxSize: 150,
+  defaultTTL: 5 * 60 * 1000,
+  persistKey: 'general_cache',
+  enablePersistence: true
+});
 export const leaderboardCache = new LeaderboardCache();
 
 // Export classes for custom instances

@@ -234,10 +234,12 @@ export default function CacheStatus({
             
             <div className="space-y-1">
               <div className="flex items-center gap-1 text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                Preset
+                <Database className="h-3 w-3" />
+                Persisted
               </div>
-              <div className="font-medium capitalize">{config?.preset || 'balanced'}</div>
+              <div className="font-medium text-blue-600">
+                {localStorage.getItem('leaderboard_cache') ? '✓' : '✗'}
+              </div>
             </div>
           </div>
 

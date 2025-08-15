@@ -237,8 +237,8 @@ export function RealLeaderboard() {
     setHasMore(true);
     setCookie('selectedCampusId', campusId); // Save to cookies
     
-    // Invalidate cache for the new campus to ensure fresh data
-    cacheUtils.invalidateCampus(parseInt(campusId));
+    // Only invalidate cache if we're switching to a different campus
+    // The cache will handle loading existing data for the new campus
   };
 
   const handleYearFilterChange = (dateRange) => {
@@ -246,10 +246,8 @@ export function RealLeaderboard() {
     setNextPage(2);
     setHasMore(true);
     
-    // Clear relevant cache when filters change
-    if (selectedCampus) {
-      cacheUtils.invalidateCampus(selectedCampus.id);
-    }
+    // Only clear cache if the date range actually changed
+    // This allows cache hits when toggling between same filters
   };
 
   const handleStudentTypeChange = (type) => {
@@ -257,8 +255,11 @@ export function RealLeaderboard() {
     setNextPage(2);
     setHasMore(true);
     
-    // Clear cache when student type changes
-    cacheUtils.invalidateCursus(parseInt(type));
+    // Clear cache only when switching between 42cursus and Piscine
+    // since they have different data structures
+    if (studentType !== type) {
+      cacheUtils.invalidateCursus(parseInt(type));
+    }
   };
 
   const handlePoolMonthChange = (month) => {
@@ -266,10 +267,7 @@ export function RealLeaderboard() {
     setNextPage(2);
     setHasMore(true);
     
-    // Clear relevant cache when pool month changes
-    if (selectedCampus) {
-      cacheUtils.invalidateCampus(selectedCampus.id);
-    }
+    // Only clear cache if pool month filter actually changed
   };
 
   if (loading) {
