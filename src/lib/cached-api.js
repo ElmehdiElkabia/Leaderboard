@@ -357,9 +357,10 @@ export { CachedApi };
 // Convenience exports for cache management
 export {
   leaderboardCache,
-  cacheEngine,
-  cacheConfig
+  cacheEngine
 } from './cache';
+
+export { cacheConfig } from './cache-config';
 
 // Helper functions for common cache operations
 export const cacheUtils = {
