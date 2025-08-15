@@ -8,6 +8,7 @@ import { Analytics } from '@vercel/analytics/react';
 import Index from "./pages/Index.jsx";
 import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound";
+import ComingSoon from "./pages/ComingSoon.jsx";
 import { OAuthCallback } from "./components/oauth-callback.jsx";
 import AuthHandler from "./components/auth-handler.jsx";
 import { ProtectedRoute } from "./components/protected-route.jsx";
@@ -87,6 +88,11 @@ const App = () => {
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/coming-soon" element={
+                <ProtectedRoute>
+                  <ComingSoon />
                 </ProtectedRoute>
               } />
               <Route path="/" element={<AuthHandler />} />

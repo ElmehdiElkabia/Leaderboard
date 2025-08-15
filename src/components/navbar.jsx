@@ -7,6 +7,11 @@ import {
   Wallet,
   Star,
   GraduationCap,
+  Home,
+  Users,
+  MessageCircle,
+  BookOpen,
+  Bell
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { ClickableAvatarNotification, AvatarHelpTooltip } from "./avatar-notification";
@@ -14,6 +19,7 @@ import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +42,10 @@ export function Navbar() {
     navigate("/login");
   };
 
+  const handleSocialFeatureClick = (feature, description) => {
+    navigate(`/coming-soon?feature=${feature}&description=${encodeURIComponent(description)}`);
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -54,9 +64,126 @@ export function Navbar() {
               {userData?.campus?.name || "Campus 21"}
             </p>
           </div>
+
+          {/* Social Media Navigation */}
+          <div className="hidden lg:flex items-center ml-8 space-x-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleSocialFeatureClick('feed', 'Discover posts, achievements, and updates from 42 students worldwide')}
+                    className="relative flex items-center px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <Home className="h-4 w-4 mr-1.5" />
+                    Feed
+                    <Badge variant="secondary" className="ml-2 text-xs">Soon</Badge>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Social feed coming soon! Share your coding journey.</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleSocialFeatureClick('groups', 'Join study groups, project teams, and peer learning communities')}
+                    className="relative flex items-center px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <Users className="h-4 w-4 mr-1.5" />
+                    Groups
+                    <Badge variant="secondary" className="ml-2 text-xs">Soon</Badge>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Study groups and project teams are on the way!</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleSocialFeatureClick('messages', 'Direct messaging system for collaboration and peer support')}
+                    className="relative flex items-center px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-1.5" />
+                    Messages
+                    <Badge variant="secondary" className="ml-2 text-xs">Soon</Badge>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Peer-to-peer messaging system in development!</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleSocialFeatureClick('resources', 'Shared learning resources, tutorials, and study materials')}
+                    className="relative flex items-center px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <BookOpen className="h-4 w-4 mr-1.5" />
+                    Resources
+                    <Badge variant="secondary" className="ml-2 text-xs">Soon</Badge>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Community-driven learning resources coming soon!</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Mobile Social Menu */}
+          <div className="lg:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  <span className="sr-only">Social Features</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Social Features (Coming Soon)</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => handleSocialFeatureClick('feed', 'Discover posts, achievements, and updates from 42 students worldwide')}
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  <span>Feed</span>
+                  <Badge variant="secondary" className="ml-auto text-xs">Soon</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleSocialFeatureClick('groups', 'Join study groups, project teams, and peer learning communities')}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>Groups</span>
+                  <Badge variant="secondary" className="ml-auto text-xs">Soon</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleSocialFeatureClick('messages', 'Direct messaging system for collaboration and peer support')}
+                  className="flex items-center gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Messages</span>
+                  <Badge variant="secondary" className="ml-auto text-xs">Soon</Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleSocialFeatureClick('resources', 'Shared learning resources, tutorials, and study materials')}
+                  className="flex items-center gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  <span>Resources</span>
+                  <Badge variant="secondary" className="ml-auto text-xs">Soon</Badge>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
             <Trophy className="h-4 w-4" />
             <span>Live Rankings</span>
