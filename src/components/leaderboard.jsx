@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { TopThree } from "./top-three";
-import LeaderboardFilters from "./filters-new";
+import LeaderboardFilters from "./filters-simple";
 import { LeaderboardTable } from "./leaderboard-table";
 import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
