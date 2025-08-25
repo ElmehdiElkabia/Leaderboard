@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { TopThree } from "./top-three";
 import { LeaderboardFilters } from "./leaderboard-filters";

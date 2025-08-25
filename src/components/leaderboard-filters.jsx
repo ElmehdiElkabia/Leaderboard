@@ -1,9 +1,9 @@
+import React, { useState } from "react"
 import { Filter, ArrowUpDown, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir" },
