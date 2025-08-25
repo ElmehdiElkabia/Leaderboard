@@ -58,6 +58,7 @@ export default async function handler(req, res) {
       cursus_id = 21,
       date_range,
       pool_month,
+      search_login,
       filters = {}
     } = req.body;
 
@@ -122,6 +123,11 @@ export default async function handler(req, res) {
     // Apply filters from request body
     if (date_range) {
       apiUrl.searchParams.set("range[begin_at]", date_range);
+    }
+
+    // Add search by login filter if provided
+    if (search_login && search_login.trim()) {
+      apiUrl.searchParams.set("filter[login]", search_login.trim());
     }
 
     if (pool_month && pool_month !== "all") {

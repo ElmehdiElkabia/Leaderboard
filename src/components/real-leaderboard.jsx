@@ -56,6 +56,7 @@ export function RealLeaderboard() {
   const [yearFilter, setYearFilter] = useState("2024-01-01,2025-01-01"); // Default to 2024
   const [studentType, setStudentType] = useState("21"); // Default to 42cursus
   const [poolMonth, setPoolMonth] = useState("all"); // Default to all months
+  const [searchQuery, setSearchQuery] = useState(""); // Search by login
   const [stats, setStats] = useState({
     totalStudents: 0,
     averageLevel: 0,
@@ -106,6 +107,7 @@ export function RealLeaderboard() {
         cursus_id: parseInt(studentType),
         date_range: dateRangeToUse,
         pool_month: poolMonth !== "all" ? poolMonth : undefined,
+        search_login: searchQuery || undefined, // Add search by login
         filters: {
           active_only: true,
           sort_by: "level",
@@ -217,7 +219,7 @@ export function RealLeaderboard() {
     if (auth.isAuthenticated() && selectedCampus) {
       fetchLeaderboardData(selectedCampus.id);
     }
-  }, [selectedCampus, yearFilter, studentType, poolMonth]); // Added all filter dependencies
+  }, [selectedCampus, yearFilter, studentType, poolMonth, searchQuery]); // Added searchQuery to dependencies
 
   // Preload common data on component mount
   useEffect(() => {
@@ -269,6 +271,14 @@ export function RealLeaderboard() {
     // Only clear cache if pool month filter actually changed
   };
 
+  const handleSearchQueryChange = (query) => {
+    setSearchQuery(query);
+    setNextPage(2);
+    setHasMore(true);
+    
+    // Clear cache when search query changes to get fresh results
+  };
+
   if (loading) {
     // Show mock data with loading skeleton while fetching real data
     const loadingStudents = mockStudents.slice(0, 10).map((student, index) => ({
@@ -308,6 +318,8 @@ export function RealLeaderboard() {
               onStudentTypeChange={() => {}}
               poolMonth={poolMonth}
               onPoolMonthChange={() => {}}
+              searchQuery={searchQuery}
+              onSearchQueryChange={() => {}}
             />
           </div>
           <div className="fixed inset-0 bg-background/20 backdrop-blur-sm flex items-center justify-center z-50">
@@ -364,6 +376,8 @@ export function RealLeaderboard() {
           onStudentTypeChange={handleStudentTypeChange}
           poolMonth={poolMonth}
           onPoolMonthChange={handlePoolMonthChange}
+          searchQuery={searchQuery}
+          onSearchQueryChange={handleSearchQueryChange}
         />
       </div>
 

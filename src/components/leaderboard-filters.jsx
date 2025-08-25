@@ -1,7 +1,8 @@
-import { Filter, ArrowUpDown } from "lucide-react"
+import { Filter, ArrowUpDown, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir" },
@@ -54,12 +55,28 @@ export function LeaderboardFilters({
   studentType,
   onStudentTypeChange,
   poolMonth,
-  onPoolMonthChange
+  onPoolMonthChange,
+  searchQuery,
+  onSearchQueryChange
 }) {
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by login (e.g., john_doe)..."
+                value={searchQuery}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
+                className="pl-10 border-border bg-background"
+              />
+            </div>
+          </div>
+          
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               {/* Student Type Selector */}

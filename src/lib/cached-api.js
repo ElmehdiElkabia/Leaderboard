@@ -112,6 +112,7 @@ class CachedApi {
       cursus_id = 21,
       date_range,
       pool_month,
+      search_login,
       filters = {}
     } = params;
 
@@ -122,6 +123,7 @@ class CachedApi {
       cursus_id: parseInt(cursus_id),
       date_range,
       pool_month: pool_month !== "all" ? pool_month : undefined,
+      search_login: search_login || undefined,
       filters: {
         active_only: true,
         sort_by: "level",

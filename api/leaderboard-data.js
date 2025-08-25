@@ -54,6 +54,7 @@ export default async function handler(req, res) {
       cursus_id = "21", // Default to 42 cursus
       date_range, // Optional date range filter (e.g., "2024-01-01,2025-01-01")
       pool_month, // Optional pool month filter
+      search_login, // Optional search by login filter
     } = req.query;
 
     if (!campus_id) {
@@ -114,6 +115,11 @@ export default async function handler(req, res) {
     // Add date range filter if provided
     if (date_range) {
       apiUrl.searchParams.set("range[begin_at]", date_range);
+    }
+
+    // Add search by login filter if provided
+    if (search_login && search_login.trim()) {
+      apiUrl.searchParams.set("filter[login]", search_login.trim());
     }
 
     // Add pool month filter if provided (for Piscine students)

@@ -7,6 +7,7 @@ import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 // Cookie helpers
 const setCookie = (name, value, days = 30) => {
@@ -43,7 +44,9 @@ export function Leaderboard({
   studentType: parentStudentType,
   onStudentTypeChange: onParentStudentTypeChange,
   poolMonth: parentPoolMonth,
-  onPoolMonthChange: onParentPoolMonthChange
+  onPoolMonthChange: onParentPoolMonthChange,
+  searchQuery: parentSearchQuery,
+  onSearchQueryChange: onParentSearchQueryChange
 }) {
   // Get user data to determine default student type
   const userData = auth.getUserData();
@@ -70,6 +73,7 @@ export function Leaderboard({
     sort: "level",
     studentType: parentStudentType || getDefaultStudentType(),
     poolMonth: parentPoolMonth || "all",
+    searchQuery: parentSearchQuery || "",
   };
 
   const [levelFilter, setLevelFilter] = useState(savedFilters.level);
@@ -78,8 +82,12 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
+  const [searchQuery, setSearchQuery] = useState(parentSearchQuery || savedFilters.searchQuery);
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
+
+  // Debounce search query to avoid too many API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   // Filter students based on applied filters
   const filteredStudents = useMemo(() => {
@@ -122,6 +130,7 @@ export function Leaderboard({
       sort: sortBy,
       studentType: studentType,
       poolMonth: poolMonth,
+      searchQuery: searchQuery,
     };
     setAppliedFilters(newFilters);
     setCookie("leaderboardFilters", newFilters);
@@ -139,6 +148,11 @@ export function Leaderboard({
     // Apply pool month change to trigger new API call
     if (onParentPoolMonthChange && poolMonth !== parentPoolMonth) {
       onParentPoolMonthChange(poolMonth);
+    }
+
+    // Apply search query change to trigger new API call
+    if (onParentSearchQueryChange && searchQuery !== parentSearchQuery) {
+      onParentSearchQueryChange(searchQuery);
     }
 
     // Apply campus change if there's a temporary selection
@@ -161,6 +175,13 @@ export function Leaderboard({
       setAppliedFilters(savedFilters);
     }
   }, []);
+
+  // Auto-apply search when debounced search query changes
+  useEffect(() => {
+    if (debouncedSearchQuery !== appliedFilters.searchQuery && onParentSearchQueryChange) {
+      onParentSearchQueryChange(debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery, appliedFilters.searchQuery, onParentSearchQueryChange]);
 
   // Sync yearFilter with parent
   useEffect(() => {
@@ -204,6 +225,8 @@ export function Leaderboard({
             onStudentTypeChange={setStudentType}
             poolMonth={poolMonth}
             onPoolMonthChange={setPoolMonth}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
             totalStudents={students.length}
             filteredStudents={filteredStudents.length}
             selectedCampus={selectedCampus}
