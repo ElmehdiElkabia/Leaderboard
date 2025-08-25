@@ -7,7 +7,6 @@ import { TableHelpOverlay } from "./table-help-overlay";
 import { auth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, Filter } from "lucide-react";
-import { useDebounce } from "@/hooks/use-debounce";
 
 // Cookie helpers
 const setCookie = (name, value, days = 30) => {
@@ -45,8 +44,7 @@ export function Leaderboard({
   onStudentTypeChange: onParentStudentTypeChange,
   poolMonth: parentPoolMonth,
   onPoolMonthChange: onParentPoolMonthChange,
-  searchQuery: parentSearchQuery,
-  onSearchQueryChange: onParentSearchQueryChange
+  onSearch // New prop for independent search
 }) {
   // Get user data to determine default student type
   const userData = auth.getUserData();
@@ -73,7 +71,6 @@ export function Leaderboard({
     sort: "level",
     studentType: parentStudentType || getDefaultStudentType(),
     poolMonth: parentPoolMonth || "all",
-    searchQuery: parentSearchQuery || "",
   };
 
   const [levelFilter, setLevelFilter] = useState(savedFilters.level);
@@ -82,12 +79,36 @@ export function Leaderboard({
   const [sortBy, setSortBy] = useState(savedFilters.sort);
   const [studentType, setStudentType] = useState(parentStudentType || savedFilters.studentType);
   const [poolMonth, setPoolMonth] = useState(parentPoolMonth || savedFilters.poolMonth);
-  const [searchQuery, setSearchQuery] = useState(parentSearchQuery || savedFilters.searchQuery);
   const [appliedFilters, setAppliedFilters] = useState(savedFilters);
   const [tempCampusFilter, setTempCampusFilter] = useState(null);
 
-  // Debounce search query to avoid too many API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  // Independent search state
+  const [searchResults, setSearchResults] = useState(students);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Handle independent search
+  const handleSearch = (query) => {
+    if (!query.trim()) {
+      setSearchResults(students);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const filtered = students.filter(student => 
+      student.login.toLowerCase().includes(query.toLowerCase()) ||
+      student.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setSearchResults(filtered);
+  };
+
+  // Use search results when searching, otherwise use normal filtered students
+  const displayStudents = isSearching ? searchResults : filteredStudents;
+
+  // Update search results when students data changes
+  useEffect(() => {
+    setSearchResults(students);
+  }, [students]);
 
   // Filter students based on applied filters
   const filteredStudents = useMemo(() => {
@@ -130,7 +151,6 @@ export function Leaderboard({
       sort: sortBy,
       studentType: studentType,
       poolMonth: poolMonth,
-      searchQuery: searchQuery,
     };
     setAppliedFilters(newFilters);
     setCookie("leaderboardFilters", newFilters);
@@ -148,11 +168,6 @@ export function Leaderboard({
     // Apply pool month change to trigger new API call
     if (onParentPoolMonthChange && poolMonth !== parentPoolMonth) {
       onParentPoolMonthChange(poolMonth);
-    }
-
-    // Apply search query change to trigger new API call
-    if (onParentSearchQueryChange && searchQuery !== parentSearchQuery) {
-      onParentSearchQueryChange(searchQuery);
     }
 
     // Apply campus change if there's a temporary selection
@@ -175,13 +190,6 @@ export function Leaderboard({
       setAppliedFilters(savedFilters);
     }
   }, []);
-
-  // Auto-apply search when debounced search query changes
-  useEffect(() => {
-    if (debouncedSearchQuery !== appliedFilters.searchQuery && onParentSearchQueryChange) {
-      onParentSearchQueryChange(debouncedSearchQuery);
-    }
-  }, [debouncedSearchQuery, appliedFilters.searchQuery, onParentSearchQueryChange]);
 
   // Sync yearFilter with parent
   useEffect(() => {
@@ -225,10 +233,9 @@ export function Leaderboard({
             onStudentTypeChange={setStudentType}
             poolMonth={poolMonth}
             onPoolMonthChange={setPoolMonth}
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
+            onSearch={handleSearch}
             totalStudents={students.length}
-            filteredStudents={filteredStudents.length}
+            filteredStudents={displayStudents.length}
             selectedCampus={selectedCampus}
             onApplyFilters={handleApplyFilters}
             tempCampusFilter={tempCampusFilter}
@@ -236,9 +243,9 @@ export function Leaderboard({
           />
 
           {/* Table */}
-          {filteredStudents.length > 0 ? (
+          {displayStudents.length > 0 ? (
             <LeaderboardTable 
-              students={filteredStudents} 
+              students={displayStudents} 
               startIndex={0} 
             />
           ) : (

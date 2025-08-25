@@ -1,8 +1,9 @@
-import { Filter, ArrowUpDown, Search } from "lucide-react"
+import { Filter, ArrowUpDown, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useState } from "react"
 
 const MOROCCAN_CAMPUSES = [
   { id: 21, name: "Benguerir" },
@@ -56,26 +57,54 @@ export function LeaderboardFilters({
   onStudentTypeChange,
   poolMonth,
   onPoolMonthChange,
-  searchQuery,
-  onSearchQueryChange
+  onSearch // New prop for independent search
 }) {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearchClick = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      // Clear search when opening
+      setSearchValue("");
+      onSearch("");
+    } else {
+      // Clear search when closing
+      setSearchValue("");
+      onSearch("");
+    }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    onSearch(value); // Call search immediately as user types
+  };
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="space-y-4">
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Independent Search Bar */}
+          {isSearchOpen && (
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
+              <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Input
                 type="text"
-                placeholder="Search by login (e.g., john_doe)..."
-                value={searchQuery}
-                onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="pl-10 border-border bg-background"
+                placeholder="Search by login name (e.g., john_doe)..."
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                autoFocus
               />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleSearchClick}
+                className="flex-shrink-0 h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
+          )}
           
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
@@ -158,7 +187,17 @@ export function LeaderboardFilters({
               </Select>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              {/* Search Icon Button */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSearchClick}
+                className={`px-3 py-2 ${isSearchOpen ? 'bg-primary text-primary-foreground' : 'border-border bg-background'}`}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+              
               <Button 
                 onClick={onApplyFilters}
                 className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
