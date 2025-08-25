@@ -1,99 +1,100 @@
-import React from "react"
+import React, { useState } from "react"
 import { Filter, ArrowUpDown, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
-// Define constants after imports to avoid hoisting issues
-const MOROCCAN_CAMPUSES = [
-  { id: 21, name: "Benguerir" },
-  { id: 75, name: "Rabat" },
-  { id: 55, name: "Tétouan" },
-  { id: 16, name: "Khouribga" },
-];
+export default function LeaderboardFilters(props) {
+  const {
+    levelFilter = "all",
+    onLevelFilterChange = () => {},
+    campusFilter = "all",
+    onCampusFilterChange = () => {},
+    yearFilter = "2024-01-01,2025-01-01",
+    onYearFilterChange = () => {},
+    sortBy = "level",
+    onSortChange = () => {},
+    totalStudents = 0,
+    filteredStudents = 0,
+    selectedCampus = null,
+    onApplyFilters = () => {},
+    tempCampusFilter = null,
+    onTempCampusFilterChange = () => {},
+    studentType = "21",
+    onStudentTypeChange = () => {},
+    poolMonth = "all",
+    onPoolMonthChange = () => {},
+    onSearch = () => {}
+  } = props;
 
-const STUDENT_TYPES = [
-  { id: 21, name: "42cursus" },
-  { id: 9, name: "Piscine" },
-];
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
-const POOL_MONTHS = [
-  { id: 5, name: "May", value: "5" },
-  { id: 6, name: "June", value: "6" },
-  { id: 7, name: "July", value: "7" },
-  { id: 8, name: "August", value: "8" },
-  { id: 9, name: "September", value: "9" },
-];
+  const campuses = [
+    { id: 21, name: "Benguerir" },
+    { id: 75, name: "Rabat" },
+    { id: 55, name: "Tétouan" },
+    { id: 16, name: "Khouribga" },
+  ];
 
-const BEGIN_AT = [
-  {id: 2019, name: "2019", value: "2019-01-01,2020-01-01"},
-  {id: 2020, name: "2020", value: "2020-01-01,2021-01-01"},
-  {id: 2021, name: "2021", value: "2021-01-01,2022-01-01"},
-  {id: 2022, name: "2022", value: "2022-01-01,2023-01-01"},
-  {id: 2023, name: "2023", value: "2023-01-01,2024-01-01"},
-  {id: 2024, name: "2024", value: "2024-01-01,2025-01-01"},
-  {id: 2025, name: "2025", value: "2025-01-01,2026-01-01"},
-];
+  const studentTypes = [
+    { id: 21, name: "42cursus" },
+    { id: 9, name: "Piscine" },
+  ];
 
-function LeaderboardFilters({
-  levelFilter = "all",
-  onLevelFilterChange = () => {},
-  campusFilter = "all",
-  onCampusFilterChange = () => {},
-  yearFilter = "2024-01-01,2025-01-01",
-  onYearFilterChange = () => {},
-  sortBy = "level",
-  onSortChange = () => {},
-  totalStudents = 0,
-  filteredStudents = 0,
-  selectedCampus = null,
-  onApplyFilters = () => {},
-  tempCampusFilter = null,
-  onTempCampusFilterChange = () => {},
-  studentType = "21",
-  onStudentTypeChange = () => {},
-  poolMonth = "all",
-  onPoolMonthChange = () => {},
-  onSearch = () => {} // New prop for independent search
-}) {
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState("");
+  const poolMonths = [
+    { id: 5, name: "May", value: "5" },
+    { id: 6, name: "June", value: "6" },
+    { id: 7, name: "July", value: "7" },
+    { id: 8, name: "August", value: "8" },
+    { id: 9, name: "September", value: "9" },
+  ];
 
-  const handleSearchClick = () => {
-    const newSearchOpen = !isSearchOpen;
-    setIsSearchOpen(newSearchOpen);
-    if (!newSearchOpen) {
-      // Clear search when closing
+  const beginAt = [
+    {id: 2019, name: "2019", value: "2019-01-01,2020-01-01"},
+    {id: 2020, name: "2020", value: "2020-01-01,2021-01-01"},
+    {id: 2021, name: "2021", value: "2021-01-01,2022-01-01"},
+    {id: 2022, name: "2022", value: "2022-01-01,2023-01-01"},
+    {id: 2023, name: "2023", value: "2023-01-01,2024-01-01"},
+    {id: 2024, name: "2024", value: "2024-01-01,2025-01-01"},
+    {id: 2025, name: "2025", value: "2025-01-01,2026-01-01"},
+  ];
+
+  const handleSearchToggle = () => {
+    const newState = !isSearchOpen;
+    setIsSearchOpen(newState);
+    if (!newState) {
       setSearchValue("");
       onSearch("");
     }
   };
 
-  const handleSearchChange = (value) => {
+  const handleSearchInput = (value) => {
     setSearchValue(value);
-    onSearch(value); // Call search immediately as user types
+    onSearch(value);
   };
+
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="space-y-4">
-          {/* Independent Search Bar */}
+          {/* Search Bar */}
           {isSearchOpen && (
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
               <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Input
                 type="text"
-                placeholder="Search by login name (e.g., john_doe)..."
+                placeholder="Search by login name..."
                 value={searchValue}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(e) => handleSearchInput(e.target.value)}
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 autoFocus
               />
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={handleSearchClick}
+                onClick={handleSearchToggle}
                 className="flex-shrink-0 h-8 w-8 p-0"
               >
                 <X className="h-4 w-4" />
@@ -103,14 +104,14 @@ function LeaderboardFilters({
           
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              {/* Student Type Selector */}
+              {/* Student Type */}
               <Select value={studentType} onValueChange={onStudentTypeChange}>
                 <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-popover">
-                  {STUDENT_TYPES.map((type) => (
+                  {studentTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       {type.name}
                     </SelectItem>
@@ -118,7 +119,7 @@ function LeaderboardFilters({
                 </SelectContent>
               </Select>
 
-              {/* Pool Month Selector - Show only for Piscine */}
+              {/* Pool Month - Only for Piscine */}
               {studentType === "9" && (
                 <Select value={poolMonth || "all"} onValueChange={onPoolMonthChange}>
                   <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
@@ -127,7 +128,7 @@ function LeaderboardFilters({
                   </SelectTrigger>
                   <SelectContent className="border-border bg-popover">
                     <SelectItem value="all">All Months</SelectItem>
-                    {POOL_MONTHS.map((month) => (
+                    {poolMonths.map((month) => (
                       <SelectItem key={month.id} value={month.value}>
                         {month.name}
                       </SelectItem>
@@ -136,14 +137,14 @@ function LeaderboardFilters({
                 </Select>
               )}
 
-              {/* Campus Selector */}
+              {/* Campus */}
               <Select value={tempCampusFilter || selectedCampus?.id?.toString() || ""} onValueChange={onTempCampusFilterChange}>
                 <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Campus" />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-popover">
-                  {MOROCCAN_CAMPUSES.map((campus) => (
+                  {campuses.map((campus) => (
                     <SelectItem key={campus.id} value={campus.id.toString()}>
                       {campus.name}
                     </SelectItem>
@@ -151,8 +152,7 @@ function LeaderboardFilters({
                 </SelectContent>
               </Select>
 
-      
-
+              {/* Year */}
               <Select value={yearFilter} onValueChange={onYearFilterChange}>
                 <SelectTrigger className="w-full sm:w-[120px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
@@ -160,7 +160,7 @@ function LeaderboardFilters({
                 </SelectTrigger>
                 <SelectContent className="border-border bg-popover">
                   <SelectItem value="all">All Years</SelectItem>
-                  {BEGIN_AT.map((item) => (
+                  {beginAt.map((item) => (
                     <SelectItem key={item.id} value={item.value}>
                       {item.name}
                     </SelectItem>
@@ -168,6 +168,7 @@ function LeaderboardFilters({
                 </SelectContent>
               </Select>
 
+              {/* Sort */}
               <Select value={sortBy} onValueChange={onSortChange}>
                 <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
                   <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -183,16 +184,17 @@ function LeaderboardFilters({
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Search Icon Button */}
+              {/* Search Button */}
               <Button
                 size="sm"
                 variant="outline"
-                onClick={handleSearchClick}
+                onClick={handleSearchToggle}
                 className={`px-3 py-2 ${isSearchOpen ? 'bg-primary text-primary-foreground' : 'border-border bg-background'}`}
               >
                 <Search className="h-4 w-4" />
               </Button>
               
+              {/* Apply Filters */}
               <Button 
                 onClick={onApplyFilters}
                 className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
@@ -209,7 +211,5 @@ function LeaderboardFilters({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-
-export default LeaderboardFilters;
