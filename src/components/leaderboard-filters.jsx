@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import { Filter, ArrowUpDown, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -39,30 +39,30 @@ const BEGIN_AT = [
 ]
 
 export function LeaderboardFilters({
-  levelFilter,
-  onLevelFilterChange,
-  campusFilter,
-  onCampusFilterChange,
-  yearFilter,
-  onYearFilterChange,
-  sortBy,
-  onSortChange,
-  totalStudents,
-  filteredStudents,
-  selectedCampus,
-  onApplyFilters,
-  tempCampusFilter,
-  onTempCampusFilterChange,
-  studentType,
-  onStudentTypeChange,
-  poolMonth,
-  onPoolMonthChange,
-  onSearch // New prop for independent search
+  levelFilter = "all",
+  onLevelFilterChange = () => {},
+  campusFilter = "all",
+  onCampusFilterChange = () => {},
+  yearFilter = "2024-01-01,2025-01-01",
+  onYearFilterChange = () => {},
+  sortBy = "level",
+  onSortChange = () => {},
+  totalStudents = 0,
+  filteredStudents = 0,
+  selectedCampus = null,
+  onApplyFilters = () => {},
+  tempCampusFilter = null,
+  onTempCampusFilterChange = () => {},
+  studentType = "21",
+  onStudentTypeChange = () => {},
+  poolMonth = "all",
+  onPoolMonthChange = () => {},
+  onSearch = () => {} // New prop for independent search
 }) {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState("");
 
-  const handleSearchClick = () => {
+  const handleSearchClick = React.useCallback(() => {
     setIsSearchOpen(!isSearchOpen);
     if (!isSearchOpen) {
       // Clear search when opening
@@ -73,12 +73,12 @@ export function LeaderboardFilters({
       setSearchValue("");
       onSearch("");
     }
-  };
+  }, [isSearchOpen, onSearch]);
 
-  const handleSearchChange = (value) => {
+  const handleSearchChange = React.useCallback((value) => {
     setSearchValue(value);
     onSearch(value); // Call search immediately as user types
-  };
+  }, [onSearch]);
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
       <CardContent className="p-6">
@@ -125,7 +125,7 @@ export function LeaderboardFilters({
 
               {/* Pool Month Selector - Show only for Piscine */}
               {studentType === "9" && (
-                <Select value={poolMonth} onValueChange={onPoolMonthChange}>
+                <Select value={poolMonth || "all"} onValueChange={onPoolMonthChange}>
                   <SelectTrigger className="w-full sm:w-[140px] border-border bg-background">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Month" />
@@ -142,7 +142,7 @@ export function LeaderboardFilters({
               )}
 
               {/* Campus Selector */}
-              <Select value={tempCampusFilter || selectedCampus?.id.toString()} onValueChange={onTempCampusFilterChange}>
+              <Select value={tempCampusFilter || selectedCampus?.id?.toString() || ""} onValueChange={onTempCampusFilterChange}>
                 <SelectTrigger className="w-full sm:w-[160px] border-border bg-background">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Campus" />
