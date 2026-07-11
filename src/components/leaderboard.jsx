@@ -102,9 +102,6 @@ export function Leaderboard({
     setSearchResults(filtered);
   };
 
-  // Use search results when searching, otherwise use normal filtered students
-  const displayStudents = isSearching ? searchResults : filteredStudents;
-
   // Update search results when students data changes
   useEffect(() => {
     setSearchResults(students);
@@ -142,6 +139,9 @@ export function Leaderboard({
 
     return filtered;
   }, [students, appliedFilters]);
+
+  // Use search results when searching, otherwise use normal filtered students
+  const displayStudents = isSearching ? searchResults : filteredStudents;
 
   const handleApplyFilters = () => {
     const newFilters = {
